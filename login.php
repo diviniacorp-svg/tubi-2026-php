@@ -10,7 +10,13 @@ if (isLoggedIn()) {
     redirect('pages/' . $user['role'] . '/dashboard.php');
 }
 
+// Validar rol desde URL
+$allowedRoles = ['alumno', 'tutor', 'escuela', 'proveedor', 'admin'];
 $role = $_GET['role'] ?? 'alumno';
+if (!in_array($role, $allowedRoles)) {
+    $role = 'alumno';
+}
+
 $roleConfig = [
     'alumno' => [
         'title' => 'Ingreso Estudiantes',

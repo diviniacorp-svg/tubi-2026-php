@@ -41,7 +41,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // Configuración de Google Gemini API
-define('GEMINI_API_KEY', 'AIzaSyDvO_xfiiFjThdLd6ax_x8pWEdkWz6GMGc');
+define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent');
 
 // ============================================
