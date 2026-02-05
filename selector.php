@@ -300,18 +300,6 @@ $pageTitle = 'Seleccionar Usuario';
     <div class="selector-page">
         <!-- Header -->
         <header class="selector-header">
-            <div class="selector-logo" id="tubiLogo">
-                <!-- Logo TuBi SVG oficial -->
-                <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 10 H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M4 20 H25" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M4 30 H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <text x="32" y="28" font-family="Ubuntu, sans-serif" font-size="24" font-weight="700" fill="currentColor">TuBi</text>
-                    <path d="M95 10 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M90 20 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M95 30 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                </svg>
-            </div>
             <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
                 <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>

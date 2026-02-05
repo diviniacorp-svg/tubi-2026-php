@@ -386,19 +386,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Content -->
         <main class="login-content">
             <div class="login-card">
-                <!-- Logo TuBi -->
-                <div class="login-logo">
-                    <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 10 H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M4 20 H25" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M4 30 H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <text x="32" y="28" font-family="Ubuntu, sans-serif" font-size="24" font-weight="700" fill="currentColor">TuBi</text>
-                        <path d="M95 10 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M90 20 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M95 30 H116" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                </div>
-
                 <!-- Icon -->
                 <div class="login-icon-wrapper">
                     <?php if ($config['icon'] === 'student'): ?>
