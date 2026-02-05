@@ -4,14 +4,14 @@ Sistema de gestión para el programa "Tu Bicicleta San Luis" - Gobierno de San L
 
 ## Descripción
 
-TuBi es un sistema web desarrollado en PHP para la gestión integral del programa de entrega de bicicletas a estudiantes de San Luis. Permite gestionar el flujo completo desde el proveedor hasta el alumno, pasando por las escuelas.
+TuBi es un sistema web desarrollado en PHP para la gestión integral del programa de entrega de bicicletas a estudiantes de San Luis. Permite gestionar el flujo completo desde el proveedor hasta el estudiante, pasando por las escuelas.
 
 ## Características
 
 - 🚲 Gestión completa de bicicletas (registro, armado, suministro, entrega)
-- 👥 Múltiples roles: Alumno, Tutor, Escuela, Proveedor, Administrador
+- 👥 Múltiples roles: Estudiante, Tutor, Escuela, Proveedor, Administrador
 - 🤖 Asistente IA integrado (Google Gemini) contextualizado por rol
-- 🎮 Sistema de gamificación para alumnos (retos, logros, módulos)
+- 🎮 Sistema de gamificación para estudiantes (retos, logros, módulos)
 - 📊 Dashboards en tiempo real con estadísticas
 - 🌓 Modo claro/oscuro en todos los paneles
 - 📱 Diseño responsive para móvil
@@ -59,7 +59,7 @@ El sistema incluye usuarios de demostración para cada rol:
 
 | Rol | Email | Password |
 |-----|-------|----------|
-| Alumno | alumno@tubi.com | demo123 |
+| Estudiante | alumno@tubi.com | demo123 |
 | Tutor | tutor@tubi.com | demo123 |
 | Escuela | escuela@tubi.com | demo123 |
 | Proveedor | proveedor@tubi.com | demo123 |
@@ -103,10 +103,10 @@ tubi-php/
 ### Flujo de Trabajo
 
 1. **Proveedor**: Registra y arma bicicletas → Suministra a escuelas
-2. **Escuela**: Recibe bicicletas → Asigna a alumnos
-3. **Alumno**: Recibe bicicleta → Accede a módulos educativos
+2. **Escuela**: Recibe bicicletas → Asigna a estudiantes
+3. **Estudiante**: Recibe bicicleta → Accede a módulos educativos
 4. **Administrador**: Supervisa todo el proceso → Genera reportes
-5. **Tutor**: Monitorea progreso de alumnos a cargo
+5. **Tutor**: Monitorea progreso de estudiantes a cargo
 
 ### Cambiar Tema (Claro/Oscuro)
 

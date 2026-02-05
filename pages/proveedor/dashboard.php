@@ -328,7 +328,7 @@ $flash = getFlash();
                     </div>
                     <div class="card-body">
                         <div class="search-bar">
-                            <input type="text" class="form-control" placeholder="🔍 Buscar por QR, Estado, Alumno o DNI..." id="searchInput" onkeyup="filtrarTabla()">
+                            <input type="text" class="form-control" placeholder="🔍 Buscar por QR, Estado, Estudiante o DNI..." id="searchInput" onkeyup="filtrarTabla()">
                             <button class="btn btn-primary">Buscar</button>
                         </div>
                         <div class="table-wrapper">
@@ -336,7 +336,7 @@ $flash = getFlash();
                                 <thead>
                                     <tr>
                                         <th>QR</th>
-                                        <th>ALUMNO / DNI</th>
+                                        <th>ESTUDIANTE / DNI</th>
                                         <th>ESTADO</th>
                                         <th>ESCUELA</th>
                                         <th>OPTIMIZACIÓN</th>
