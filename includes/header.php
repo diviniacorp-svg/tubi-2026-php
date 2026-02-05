@@ -22,21 +22,8 @@ $flash = getFlash();
         <?php if ($user): ?>
         <header class="header">
             <div class="header-inner">
-                <a href="<?= BASE_URL ?>" class="logo">
-                    <svg width="140" height="50" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                        <!-- Líneas izquierda -->
-                        <rect x="5" y="18" width="35" height="4" rx="2" fill="currentColor" opacity="0.7"/>
-                        <rect x="5" y="27" width="42" height="4" rx="2" fill="currentColor" opacity="0.8"/>
-                        <rect x="5" y="36" width="38" height="4" rx="2" fill="currentColor" opacity="0.7"/>
-
-                        <!-- Texto TuBi -->
-                        <text x="55" y="40" font-family="Ubuntu, sans-serif" font-size="32" font-weight="700" fill="currentColor" letter-spacing="-1">TuBi</text>
-
-                        <!-- Líneas derecha -->
-                        <rect x="140" y="18" width="35" height="4" rx="2" fill="currentColor" opacity="0.7"/>
-                        <rect x="133" y="27" width="42" height="4" rx="2" fill="currentColor" opacity="0.8"/>
-                        <rect x="137" y="36" width="38" height="4" rx="2" fill="currentColor" opacity="0.7"/>
-                    </svg>
+                <a href="<?= BASE_URL ?>" class="logo" style="min-width: 140px; height: 50px; display: flex; align-items: center;">
+                    <!-- Espacio para logo - agregar imagen aquí -->
                 </a>
 
                 <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema (Oscuro/Claro/Azul)" title="Click para cambiar tema" style="margin-right: 1rem;">
