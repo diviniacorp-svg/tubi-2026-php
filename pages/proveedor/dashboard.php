@@ -121,6 +121,65 @@ $flash = getFlash();
                 </div>
                 <?php endif; ?>
 
+                <!-- Banner de Instrucciones para Pruebas -->
+                <div class="card" style="border-left: 4px solid #2EC4C6; background: linear-gradient(135deg, rgba(46, 196, 198, 0.1) 0%, rgba(53, 67, 147, 0.05) 100%);">
+                    <div class="card-header">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                            Instrucciones para Pruebas del Sistema
+                        </h3>
+                        <span class="badge" style="background: #2EC4C6; color: white;">Demo</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; background: #354393; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">1</span>
+                                <div>
+                                    <strong style="display: block; margin-bottom: 0.25rem;">Registrar Bicicletas</strong>
+                                    <p style="margin: 0; opacity: 0.8;">Usá el formulario "Registrar Nueva Bicicleta" para crear bicicletas. Se generarán automáticamente en estado "Depósito".</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; background: #354393; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">2</span>
+                                <div>
+                                    <strong style="display: block; margin-bottom: 0.25rem;">Armar Bicicletas</strong>
+                                    <p style="margin: 0; opacity: 0.8;">En la tabla "Gestión de Bicicletas", hacé click en "Armar" para cambiar el estado a "Armada". Observá cómo se actualizan las estadísticas en tiempo real.</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; background: #354393; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">3</span>
+                                <div>
+                                    <strong style="display: block; margin-bottom: 0.25rem;">Suministrar a Escuelas</strong>
+                                    <p style="margin: 0; opacity: 0.8;">Seleccioná una escuela del desplegable y hacé click en "Suministrar" para enviar bicicletas armadas. Esto las transferirá al panel de la Escuela.</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; background: #2EC4C6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">💬</span>
+                                <div>
+                                    <strong style="display: block; margin-bottom: 0.25rem;">Probar Chat IA</strong>
+                                    <p style="margin: 0; opacity: 0.8;">Click en el botón de chat 💬 (esquina inferior derecha) para consultar al asistente IA contextualizado para proveedores. Probá preguntas como: "¿Cómo registro una bicicleta?" o "¿Cuál es el proceso de suministro?"</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: rgba(46, 196, 198, 0.1); border-radius: 8px; margin-top: 0.5rem;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink: 0; color: #2EC4C6;">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                <div style="font-size: 0.9rem;">
+                                    <strong>Nota:</strong> Este es un sistema de demostración. Los datos se almacenan en sesión PHP y se reinician al cerrar el navegador. Para probar el flujo completo, cambiá de rol usando el selector en el login.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Info del Proveedor -->
                 <div class="card">
                     <div class="proveedor-header-card">
