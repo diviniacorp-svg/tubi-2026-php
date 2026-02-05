@@ -23,16 +23,7 @@ $flash = getFlash();
         <header class="header">
             <div class="header-inner">
                 <a href="<?= BASE_URL ?>" class="logo">
-                    <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                        <!-- Líneas de velocidad -->
-                        <rect x="0" y="8" width="20" height="3" rx="1.5" fill="currentColor" opacity="0.6"/>
-                        <rect x="0" y="15" width="28" height="3" rx="1.5" fill="currentColor" opacity="0.7"/>
-                        <rect x="0" y="22" width="24" height="3" rx="1.5" fill="currentColor" opacity="0.6"/>
-                        <rect x="0" y="29" width="20" height="3" rx="1.5" fill="currentColor" opacity="0.5"/>
-
-                        <!-- Texto TuBi -->
-                        <text x="35" y="27" font-family="Ubuntu, sans-serif" font-size="22" font-weight="700" fill="currentColor" letter-spacing="-0.5">TuBi</text>
-                    </svg>
+                    <!-- Logo placeholder - insertar logo original aquí -->
                 </a>
 
                 <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema (Oscuro/Claro/Azul)" title="Click para cambiar tema" style="margin-right: 1rem;">
