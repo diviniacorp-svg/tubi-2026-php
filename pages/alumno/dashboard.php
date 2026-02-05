@@ -635,6 +635,18 @@ if ($esMañana) {
         <!-- Main Content -->
         <main class="app-content">
             <div class="dashboard-estudiante">
+                <!-- Mensaje de Bienvenida -->
+                <div class="welcome-banner" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 1.5rem 2rem; border-radius: 12px; color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" style="flex-shrink: 0;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">¡Bienvenido, Estudiante!</h2>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">Tu panel de aprendizaje y progreso</p>
+                    </div>
+                </div>
+
                 <!-- Stats rápidos y racha -->
                 <div class="stats-row">
                     <div class="stat-mini">

@@ -121,6 +121,18 @@ $flash = getFlash();
                 </div>
                 <?php endif; ?>
 
+                <!-- Mensaje de Bienvenida -->
+                <div class="welcome-banner" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); padding: 1.5rem 2rem; border-radius: 12px; color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" style="flex-shrink: 0;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">¡Bienvenido, Proveedor!</h2>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">Panel de gestión de inventario y distribución</p>
+                    </div>
+                </div>
+
                 <!-- Info del Proveedor -->
                 <div class="card">
                     <div class="proveedor-header-card">
@@ -327,6 +339,7 @@ $flash = getFlash();
                                         <th>ALUMNO / DNI</th>
                                         <th>ESTADO</th>
                                         <th>ESCUELA</th>
+                                        <th>OPTIMIZACIÓN</th>
                                         <th>ACCIÓN</th>
                                     </tr>
                                 </thead>
@@ -367,6 +380,40 @@ $flash = getFlash();
                                             <?php else: ?>
                                                 <em class="text-muted">-</em>
                                             <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            // Sugerencias de optimización según estado
+                                            $optimizaciones = [
+                                                'deposito' => [
+                                                    'icon' => '⚡',
+                                                    'texto' => 'Armar en lote para ahorrar tiempo',
+                                                    'color' => '#f59e0b'
+                                                ],
+                                                'armada' => [
+                                                    'icon' => '📦',
+                                                    'texto' => 'Agrupar envíos por zona geográfica',
+                                                    'color' => '#06b6d4'
+                                                ],
+                                                'en_escuela' => [
+                                                    'icon' => '✓',
+                                                    'texto' => 'Listo para asignación a alumno',
+                                                    'color' => '#22c55e'
+                                                ],
+                                                'entregada' => [
+                                                    'icon' => '🎯',
+                                                    'texto' => 'Proceso completado exitosamente',
+                                                    'color' => '#10b981'
+                                                ],
+                                            ];
+                                            $opt = $optimizaciones[$bici['estado']] ?? ['icon' => 'ℹ️', 'texto' => '-', 'color' => '#64748b'];
+                                            ?>
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; cursor: help;" title="Click para más detalles">
+                                                <span style="font-size: 1.2rem;"><?= $opt['icon'] ?></span>
+                                                <small style="color: <?= $opt['color'] ?>; font-weight: 500; line-height: 1.3;">
+                                                    <?= $opt['texto'] ?>
+                                                </small>
+                                            </div>
                                         </td>
                                         <td>
                                             <?php if ($bici['estado'] === 'deposito'): ?>

@@ -45,7 +45,7 @@ $flash = getFlash();
                     $navItems = [
                         'alumno' => [
                             ['url' => 'pages/alumno/dashboard.php', 'label' => '🚲 Mi TuBi', 'page' => 'dashboard'],
-                            ['url' => 'pages/alumno/aprender.php', 'label' => '🎮 Aprendé Jugando', 'page' => 'aprender'],
+                            ['url' => 'pages/alumno/aprender.php', 'label' => '🎮 Aprende Jugando', 'page' => 'aprender'],
                         ],
                         'tutor' => [
                             ['url' => 'pages/tutor/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'],
