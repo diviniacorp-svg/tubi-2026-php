@@ -38,17 +38,15 @@
         const container = document.getElementById('introContainer');
         if (!container) return;
 
+        // Fase 1: Animación de división de pantalla
         phaseTimers.push(setTimeout(function() {
             container.classList.add('phase-split');
         }, PHASE_1_DURATION));
 
-        phaseTimers.push(setTimeout(function() {
-            container.classList.add('phase-logo');
-        }, PHASE_1_DURATION + PHASE_2_DURATION));
-
+        // Después de la división, redirigir directamente (sin mostrar logo)
         phaseTimers.push(setTimeout(function() {
             redirectToNext();
-        }, PHASE_1_DURATION + PHASE_2_DURATION + PHASE_3_DURATION));
+        }, PHASE_1_DURATION + PHASE_2_DURATION));
     }
 
     function init() {
