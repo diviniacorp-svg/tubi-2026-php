@@ -77,6 +77,197 @@ $flash = getFlash();
     <title><?= e($pageTitle) ?> - TuBi 2026</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
+    <style>
+        /* Panel de Chat Integrado */
+        .chat-panel-integrated {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            margin: 2rem 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chat-panel-header {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-panel-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-panel-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .chat-panel-body {
+            height: 500px;
+            overflow-y: auto;
+            background: var(--bg-dark);
+        }
+
+        .chat-messages-panel {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 100%;
+        }
+
+        .chat-panel-footer {
+            background: var(--bg-card);
+            padding: 1.5rem 2rem;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input-panel {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all var(--transition);
+        }
+
+        .chat-input-panel:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+
+        .chat-send-panel {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            min-width: 50px;
+        }
+
+        .chat-send-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .chat-send-panel:active {
+            transform: translateY(0);
+        }
+
+        /* Mensajes del chat */
+        .chat-message {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+        }
+
+        .chat-message.assistant {
+            align-self: flex-start;
+        }
+
+        .chat-message-content {
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .chat-message.user .chat-message-content {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant .chat-message-content {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 0 0.5rem;
+        }
+
+        .chat-loading {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+
+        .chat-loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #06b6d4;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .chat-loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .chat-loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-panel-body {
+                height: 400px;
+            }
+
+            .chat-message {
+                max-width: 95%;
+            }
+        }
+    </style>
 </head>
 <body class="dark-theme tubi-bg-pattern" data-base-url="<?= BASE_URL ?>">
     <div class="app-container">
@@ -490,26 +681,187 @@ $flash = getFlash();
     setTimeout(() => location.reload(), 60000);
     </script>
 
-    <!-- Tutorial y Chat -->
-    <?php include __DIR__ . '/../../includes/tutorial.php'; ?>
-
-    <!-- Chat TuBi Flotante -->
-    <div class="chat-box" id="chatBox">
-        <button class="chat-toggle" id="chatToggle" title="Chat TuBi">💬</button>
-        <div class="chat-window" id="chatWindow" style="display: none;">
-            <div class="chat-header">
-                <span>🚲 TuBi Chat</span>
-                <button class="chat-close" id="chatClose">×</button>
+    <!-- Panel de Chat IA TuBi - Integrado -->
+    <div class="chat-panel-integrated">
+        <div class="chat-panel-header">
+            <div class="chat-panel-title">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="margin-right: 0.5rem;">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>🤖 Asistente IA TuBi</span>
             </div>
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Escribí tu mensaje..." autocomplete="off">
-                <button class="chat-send" id="chatSend">➤</button>
+            <div class="chat-panel-subtitle">Consultas sobre gestión, optimización y procesos del sistema</div>
+        </div>
+        <div class="chat-panel-body">
+            <div class="chat-messages-panel" id="chatMessages">
+                <!-- Mensajes se cargan dinámicamente -->
             </div>
+        </div>
+        <div class="chat-panel-footer">
+            <input type="text" class="chat-input-panel" id="chatInput" placeholder="Escribí tu consulta al asistente IA..." autocomplete="off">
+            <button class="chat-send-panel" id="chatSend" title="Enviar mensaje">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
         </div>
     </div>
 
+    <!-- Tutorial -->
+    <?php include __DIR__ . '/../../includes/tutorial.php'; ?>
+
     <script src="<?= BASE_URL ?>assets/js/toast.js"></script>
-    <script src="<?= BASE_URL ?>assets/js/chat.js"></script>
+    <script>
+    // Chat IA Integrado - Panel completo
+    (function() {
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSend = document.getElementById('chatSend');
+
+        if (!chatMessages || !chatInput || !chatSend) return;
+
+        let conversationHistory = [];
+        let welcomeShown = false;
+
+        // Cargar mensaje de bienvenida al cargar la página
+        window.addEventListener('load', function() {
+            if (!welcomeShown) {
+                loadWelcomeMessage();
+                welcomeShown = true;
+            }
+        });
+
+        // Enviar mensaje al hacer click
+        chatSend.addEventListener('click', sendMessage);
+
+        // Enviar mensaje con Enter
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Cargar mensaje de bienvenida
+        function loadWelcomeMessage() {
+            const baseUrl = '<?= BASE_URL ?>';
+            fetch(baseUrl + 'api/chat.php?action=welcome')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.content) {
+                        addMessage(data.content, 'assistant');
+                    }
+                })
+                .catch(error => {
+                    addMessage('¡Hola! Soy el Asistente TuBi. Estoy aquí para ayudarte con consultas sobre:\n\n• Gestión de inventario\n• Procesos de armado y suministro\n• Optimización de flujos de trabajo\n• Estadísticas y reportes\n\n¿En qué puedo ayudarte?', 'assistant');
+                });
+        }
+
+        // Enviar mensaje
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Agregar mensaje del usuario
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.disabled = true;
+            chatSend.disabled = true;
+
+            // Mostrar indicador de escritura
+            const loadingDiv = showLoading();
+
+            const baseUrl = '<?= BASE_URL ?>';
+            fetch(baseUrl + 'api/chat.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: conversationHistory.slice(-10)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                removeLoading(loadingDiv);
+                chatInput.disabled = false;
+                chatSend.disabled = false;
+                chatInput.focus();
+
+                if (data.content) {
+                    addMessage(data.content, 'assistant');
+                    conversationHistory.push({ role: 'user', content: message });
+                    conversationHistory.push({ role: 'assistant', content: data.content });
+                } else if (data.error) {
+                    addMessage('Disculpá, no pude procesar tu mensaje. ¿Podés reformularlo?', 'assistant');
+                }
+            })
+            .catch(error => {
+                removeLoading(loadingDiv);
+                chatInput.disabled = false;
+                chatSend.disabled = false;
+                chatInput.focus();
+                addMessage('Error de conexión. Por favor, intentá de nuevo.', 'assistant');
+            });
+        }
+
+        // Agregar mensaje al chat
+        function addMessage(content, role) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message ' + role;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'chat-message-content';
+            contentDiv.innerHTML = formatMessage(content);
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'chat-message-time';
+            const now = new Date();
+            timeDiv.textContent = now.getHours().toString().padStart(2, '0') + ':' +
+                                 now.getMinutes().toString().padStart(2, '0');
+
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Formatear mensaje
+        function formatMessage(text) {
+            text = text.replace(/\n/g, '<br>');
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/• /g, '&bull; ');
+            text = text.replace(/- /g, '&bull; ');
+            return text;
+        }
+
+        // Mostrar indicador de carga
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'chat-message assistant';
+            loadingDiv.innerHTML = `
+                <div class="chat-message-content">
+                    <div class="chat-loading">
+                        <div class="chat-loading-dot"></div>
+                        <div class="chat-loading-dot"></div>
+                        <div class="chat-loading-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return loadingDiv;
+        }
+
+        // Eliminar indicador de carga
+        function removeLoading(loadingDiv) {
+            if (loadingDiv && loadingDiv.parentNode) {
+                loadingDiv.remove();
+            }
+        }
+    })();
+    </script>
 </body>
 </html>

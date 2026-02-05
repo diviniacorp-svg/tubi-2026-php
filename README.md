@@ -44,9 +44,11 @@ TuBi es un sistema web desarrollado en PHP para la gestión integral del program
    - Si está en raíz: `BASE_URL=/`
    - Editar en `config/config.php` línea 49
 
-4. **Configurar API de Gemini** (opcional para chat IA)
+4. **Configurar API de Gemini** (REQUERIDO para chat IA)
    - Obtener API Key en: https://makersuite.google.com/app/apikey
-   - Agregar en `.env`: `GEMINI_API_KEY=tu_clave_aqui`
+   - Crear archivo `.env` copiando `.env.example`
+   - Editar `.env` y agregar: `GEMINI_API_KEY=tu_clave_aqui`
+   - **IMPORTANTE**: El archivo `.env` no debe compartirse públicamente
 
 5. **Verificar permisos**
    ```bash
