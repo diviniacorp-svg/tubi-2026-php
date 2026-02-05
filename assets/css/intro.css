@@ -1,0 +1,251 @@
+/* TUBI 2026 - Interfaz 0 Cinematográfica */
+
+body.intro-page {
+    margin: 0;
+    padding: 0;
+    font-family: 'Ubuntu', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #0B1220;
+}
+
+.intro-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fase 1: Imagen de fondo completa */
+.intro-background {
+    position: absolute;
+    inset: 0;
+    background-image: url('../img/intro-central.png');
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.7) brightness(0.9);
+    z-index: 1;
+}
+
+.intro-background::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 18, 32, 0.3) 0%, rgba(53, 67, 147, 0.4) 100%);
+}
+
+/* Fase 2: Split screen (división) */
+.intro-split-left,
+.intro-split-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background-image: url('../img/intro-central.png');
+    background-size: cover;
+    filter: saturate(0.7) brightness(0.9);
+    z-index: 5;
+    animation: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.intro-split-left {
+    left: 0;
+    background-position: left center;
+}
+
+.intro-split-right {
+    right: 0;
+    background-position: right center;
+}
+
+.intro-container.phase-split .intro-background {
+    opacity: 0;
+}
+
+.intro-container.phase-split .intro-split-left {
+    opacity: 1;
+    animation: splitLeft 0.8s ease-out forwards;
+}
+
+.intro-container.phase-split .intro-split-right {
+    opacity: 1;
+    animation: splitRight 0.8s ease-out forwards;
+}
+
+@keyframes splitLeft {
+    to { transform: translateX(-100%); }
+}
+
+@keyframes splitRight {
+    to { transform: translateX(100%); }
+}
+
+/* Fase 3: Logo TuBi aparece y se infla */
+.intro-logo {
+    position: absolute;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.5);
+}
+
+.intro-container.phase-logo .intro-logo {
+    animation: logoAppear 1s ease-out forwards;
+}
+
+@keyframes logoAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.intro-logo svg {
+    width: 300px;
+    height: auto;
+    filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
+}
+
+/* Botón Saltar */
+.intro-skip {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.intro-skip:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Fase 1: Contenido sobre la imagen */
+.intro-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.intro-container.phase-split .intro-content,
+.intro-container.phase-logo .intro-content {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* Barra de carga */
+.intro-loading-bar {
+    width: 300px;
+    max-width: 80vw;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.intro-loading-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2EC4C6 0%, #354393 100%);
+    border-radius: 10px;
+    animation: loadingProgress 3.5s ease-out forwards;
+    box-shadow: 0 0 20px rgba(46, 196, 198, 0.5);
+}
+
+@keyframes loadingProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* Iconos */
+.intro-icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem;
+    background: rgba(11, 18, 32, 0.6);
+    border-radius: 50px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 1s ease-out 0.3s both;
+}
+
+.intro-icon {
+    width: 36px;
+    height: 36px;
+    color: rgba(255, 255, 255, 0.9);
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+.intro-icon:nth-child(1) { animation-delay: 0s; }
+.intro-icon:nth-child(2) { animation-delay: 0.2s; }
+.intro-icon:nth-child(3) { animation-delay: 0.4s; }
+.intro-icon:nth-child(4) { animation-delay: 0.6s; }
+.intro-icon:nth-child(5) { animation-delay: 0.8s; }
+
+.intro-icon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; }
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Fade out final */
+.intro-container.fade-out {
+    animation: introFadeOut 0.5s ease forwards;
+}
+
+@keyframes introFadeOut {
+    to { opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .intro-loading-bar { width: 250px; }
+    .intro-icons { gap: 1.5rem; padding: 0.75rem 1.5rem; }
+    .intro-icon { width: 30px; height: 30px; }
+    .intro-skip { top: 1rem; right: 1rem; padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+    .intro-logo svg { width: 200px; }
+}
