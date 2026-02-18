@@ -4,7 +4,6 @@
  * Flujo de trabajo completo con datos en tiempo real
  */
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../config/data.php';
 
 if (!isLoggedIn() || !hasRole('proveedor')) {
     redirect('login.php?role=proveedor');
@@ -13,58 +12,94 @@ if (!isLoggedIn() || !hasRole('proveedor')) {
 $user = getCurrentUser();
 $pageTitle = 'Panel Proveedor';
 
-// Obtener datos en tiempo real
-$proveedorId = $user['id'] ?? 1;
+// Obtener datos en tiempo real (sin filtrar por proveedor para ver todas las bicis)
+$proveedorId = null;
 $stats = getEstadisticasProveedor($proveedorId);
 $bicicletas = getBicicletasParaProveedor(15);
 $escuelas = getEscuelas();
 
 // Datos del proveedor
-$proveedorData = [
-    'nombre' => $user['nombre'] ?? 'Logística San Luis S.A.',
-    'cuit' => $user['cuit'] ?? '30-12345678-9',
+$proveedorData = array(
+    'nombre' => isset($user['nombre']) ? $user['nombre'] : 'Logistica San Luis S.A.',
+    'cuit' => isset($user['cuit']) ? $user['cuit'] : '30-12345678-9',
     'localidad' => 'Villa Mercedes, San Luis',
-];
+);
 
 // Procesar acciones POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+    $action = isset($_POST['action']) ? $_POST['action'] : '';
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $result = array('success' => false, 'message' => 'Acción no válida');
 
     if ($action === 'registrar_bici') {
-        $numero = $_POST['numero'] ?? '';
-        $serie = $_POST['serie'] ?? '';
-
+        $numero = isset($_POST['numero']) ? $_POST['numero'] : '';
+        $serie = isset($_POST['serie']) ? $_POST['serie'] : '';
         if ($numero && $serie) {
-            $newId = addBicicleta([
+            $newId = addBicicleta(array(
                 'serie' => $serie,
                 'rodado' => 26,
                 'color' => 'Azul',
                 'estado' => 'deposito',
-                'proveedor_id' => $proveedorId,
-            ]);
-            setFlash('success', 'Bicicleta registrada exitosamente: TUBI-2026-' . str_pad($newId, 5, '0', STR_PAD_LEFT));
+                'proveedor_id' => 1,
+            ));
+            $codigo = 'TUBI-2026-' . str_pad($newId, 5, '0', STR_PAD_LEFT);
+            $newStats = getEstadisticasProveedor($proveedorId);
+            $result = array('success' => true, 'message' => "Bicicleta registrada: $codigo", 'action' => 'registrar', 'stats' => $newStats);
+        } else {
+            $result = array('success' => false, 'message' => 'Completá todos los campos');
         }
-        redirect('pages/proveedor/dashboard.php');
     }
 
     if ($action === 'armar') {
-        $biciId = $_POST['bici_id'] ?? 0;
-        if ($biciId) {
-            cambiarEstadoBicicleta($biciId, 'armada');
-            setFlash('success', 'Bicicleta marcada como ARMADA');
+        $biciId = isset($_POST['bici_id']) ? $_POST['bici_id'] : 0;
+        if ($biciId && cambiarEstadoBicicleta($biciId, 'armada')) {
+            $newStats = getEstadisticasProveedor($proveedorId);
+            $result = array(
+                'success' => true,
+                'message' => 'Bicicleta marcada como ARMADA',
+                'action' => 'armar',
+                'bici_id' => (int)$biciId,
+                'stats' => $newStats
+            );
+        } else {
+            $result = array('success' => false, 'message' => 'No se pudo armar la bicicleta');
         }
-        redirect('pages/proveedor/dashboard.php');
     }
 
     if ($action === 'suministrar') {
-        $biciId = $_POST['bici_id'] ?? 0;
-        $escuelaId = $_POST['escuela_id'] ?? 0;
-        if ($biciId && $escuelaId) {
-            cambiarEstadoBicicleta($biciId, 'en_escuela', $escuelaId);
-            setFlash('success', 'Bicicleta SUMINISTRADA a escuela exitosamente');
+        $biciId = isset($_POST['bici_id']) ? $_POST['bici_id'] : 0;
+        $escuelaId = isset($_POST['escuela_id']) ? $_POST['escuela_id'] : 0;
+        if ($biciId && $escuelaId && cambiarEstadoBicicleta($biciId, 'en_escuela', $escuelaId)) {
+            $escuelaNombre = '';
+            foreach ($escuelas as $esc) {
+                if ($esc['id'] == $escuelaId) {
+                    $escuelaNombre = $esc['nombre'];
+                    break;
+                }
+            }
+            $newStats = getEstadisticasProveedor($proveedorId);
+            $result = array(
+                'success' => true,
+                'message' => "Bicicleta SUMINISTRADA a $escuelaNombre",
+                'action' => 'suministrar',
+                'bici_id' => (int)$biciId,
+                'escuela_nombre' => $escuelaNombre,
+                'stats' => $newStats
+            );
+        } else {
+            $result = array('success' => false, 'message' => 'Seleccioná una escuela válida');
         }
-        redirect('pages/proveedor/dashboard.php');
     }
+
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit;
+    }
+
+    setFlash($result['success'] ? 'success' : 'error', $result['message']);
+    redirect('pages/proveedor/dashboard.php');
 }
 
 $flash = getFlash();
@@ -75,201 +110,111 @@ $flash = getFlash();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - TuBi 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tubi-institucional.css">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
     <style>
-        /* Panel de Chat Integrado */
-        .chat-panel-integrated {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            margin: 2rem 1rem;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .chat-panel-header {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            padding: 1.5rem 2rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .chat-panel-title {
+        /* === Inline Notifications (junto a la acción) === */
+        .inline-notif {
             display: flex;
             align-items: center;
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .chat-panel-subtitle {
-            font-size: 0.875rem;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-
-        .chat-panel-body {
-            height: 500px;
-            overflow-y: auto;
-            background: var(--bg-dark);
-        }
-
-        .chat-messages-panel {
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            min-height: 100%;
-        }
-
-        .chat-panel-footer {
-            background: var(--bg-card);
-            padding: 1.5rem 2rem;
-            border-top: 2px solid var(--border-color);
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .chat-input-panel {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--border-color);
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
             border-radius: 8px;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            transition: all var(--transition);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            animation: slideInNotif 0.3s ease;
+            margin: 0.5rem 0;
         }
 
-        .chat-input-panel:focus {
-            outline: none;
-            border-color: #06b6d4;
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        .inline-notif.success {
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+            border: 1px solid rgba(34, 197, 94, 0.25);
         }
 
-        .chat-send-panel {
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        .inline-notif.error {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .inline-notif .notif-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all var(--transition);
-            min-width: 50px;
-        }
-
-        .chat-send-panel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
-        }
-
-        .chat-send-panel:active {
-            transform: translateY(0);
-        }
-
-        /* Mensajes del chat */
-        .chat-message {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            max-width: 85%;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .chat-message.user {
-            align-self: flex-end;
-        }
-
-        .chat-message.assistant {
-            align-self: flex-start;
-        }
-
-        .chat-message-content {
-            padding: 0.875rem 1.25rem;
-            border-radius: 12px;
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-
-        .chat-message.user .chat-message-content {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .chat-message.assistant .chat-message-content {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 4px;
-        }
-
-        .chat-message-time {
             font-size: 0.75rem;
-            color: var(--text-muted);
-            padding: 0 0.5rem;
+            flex-shrink: 0;
         }
 
-        .chat-loading {
-            display: flex;
-            gap: 0.5rem;
-            padding: 1rem;
+        .inline-notif.success .notif-icon {
+            background: #22c55e;
+            color: white;
         }
 
-        .chat-loading-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #06b6d4;
-            animation: bounce 1.4s infinite ease-in-out;
+        .inline-notif.error .notif-icon {
+            background: #ef4444;
+            color: white;
         }
 
-        .chat-loading-dot:nth-child(1) {
-            animation-delay: -0.32s;
+        @keyframes slideInNotif {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .chat-loading-dot:nth-child(2) {
-            animation-delay: -0.16s;
+        /* Row highlight animation */
+        tr.row-success {
+            animation: rowFlash 2s ease;
         }
 
-        @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0);
-            }
-            40% {
-                transform: scale(1);
-            }
+        @keyframes rowFlash {
+            0% { background: rgba(34, 197, 94, 0.25); }
+            100% { background: transparent; }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .chat-panel-body {
-                height: 400px;
-            }
+        tr.row-error {
+            animation: rowFlashError 2s ease;
+        }
 
-            .chat-message {
-                max-width: 95%;
-            }
+        @keyframes rowFlashError {
+            0% { background: rgba(239, 68, 68, 0.2); }
+            100% { background: transparent; }
+        }
+
+        /* Number update animation */
+        .num-updated {
+            animation: numPop 0.5s ease;
+        }
+
+        @keyframes numPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #22c55e; }
+            100% { transform: scale(1); }
+        }
+
+        /* Processing button state */
+        .btn-processing {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Notification row in table */
+        .notif-row td {
+            padding: 0 !important;
+            border: none !important;
         }
     </style>
 </head>
-<body class="dark-theme tubi-bg-pattern" data-base-url="<?= BASE_URL ?>">
+<body class="tubi-bg-pattern" data-base-url="<?= BASE_URL ?>">
+    <!-- Zócalo Institucional Superior -->
+    <?php include __DIR__ . '/../../includes/zocalo-header.php'; ?>
+
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
@@ -281,6 +226,15 @@ $flash = getFlash();
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M23 4v6h-6M1 20v-6h6"/>
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+                <button class="btn-icon" id="themeToggle" title="Cambiar tema">
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="display:none;">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                     </svg>
                 </button>
                 <div class="header-user">
@@ -298,12 +252,6 @@ $flash = getFlash();
         <!-- Main Content -->
         <main class="app-content">
             <div class="dashboard-proveedor">
-                <?php if ($flash): ?>
-                <div class="alert alert-<?= e($flash['type']) ?>">
-                    <?= e($flash['message']) ?>
-                </div>
-                <?php endif; ?>
-
                 <!-- Mensaje de Bienvenida -->
                 <div class="welcome-banner" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); padding: 1.5rem 2rem; border-radius: 12px; color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" style="flex-shrink: 0;">
@@ -311,7 +259,7 @@ $flash = getFlash();
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                     <div>
-                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">¡Bienvenido, Proveedor!</h2>
+                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Bienvenidos Proveedores</h2>
                         <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">Panel de gestión de inventario y distribución</p>
                     </div>
                 </div>
@@ -528,7 +476,7 @@ $flash = getFlash();
                                 </thead>
                                 <tbody>
                                     <?php foreach ($bicicletas as $bici): ?>
-                                    <tr>
+                                    <tr data-bici-id="<?= $bici['id'] ?>">
                                         <td><strong><?= e($bici['codigo']) ?></strong></td>
                                         <td>
                                             <?php if ($bici['alumno']): ?>
@@ -540,21 +488,21 @@ $flash = getFlash();
                                         </td>
                                         <td>
                                             <?php
-                                            $estadoClass = [
+                                            $estadoClass = array(
                                                 'deposito' => 'badge-secondary',
                                                 'armada' => 'badge-warning',
                                                 'en_escuela' => 'badge-info',
                                                 'entregada' => 'badge-success',
-                                            ];
-                                            $estadoLabel = [
+                                            );
+                                            $estadoLabel = array(
                                                 'deposito' => 'En Depósito',
                                                 'armada' => 'Armada',
                                                 'en_escuela' => 'En Escuela',
                                                 'entregada' => 'Entregada',
-                                            ];
+                                            );
                                             ?>
-                                            <span class="badge <?= $estadoClass[$bici['estado']] ?? 'badge-secondary' ?>">
-                                                <?= $estadoLabel[$bici['estado']] ?? $bici['estado'] ?>
+                                            <span class="badge <?= isset($estadoClass[$bici['estado']]) ? $estadoClass[$bici['estado']] : 'badge-secondary' ?>">
+                                                <?= isset($estadoLabel[$bici['estado']]) ? $estadoLabel[$bici['estado']] : $bici['estado'] ?>
                                             </span>
                                         </td>
                                         <td>
@@ -567,29 +515,29 @@ $flash = getFlash();
                                         <td>
                                             <?php
                                             // Sugerencias de optimización según estado
-                                            $optimizaciones = [
-                                                'deposito' => [
+                                            $optimizaciones = array(
+                                                'deposito' => array(
                                                     'icon' => '⚡',
                                                     'texto' => 'Armar en lote para ahorrar tiempo',
                                                     'color' => '#f59e0b'
-                                                ],
-                                                'armada' => [
+                                                ),
+                                                'armada' => array(
                                                     'icon' => '📦',
                                                     'texto' => 'Agrupar envíos por zona geográfica',
                                                     'color' => '#06b6d4'
-                                                ],
-                                                'en_escuela' => [
+                                                ),
+                                                'en_escuela' => array(
                                                     'icon' => '✓',
                                                     'texto' => 'Listo para asignación a alumno',
                                                     'color' => '#22c55e'
-                                                ],
-                                                'entregada' => [
+                                                ),
+                                                'entregada' => array(
                                                     'icon' => '🎯',
                                                     'texto' => 'Proceso completado exitosamente',
                                                     'color' => '#10b981'
-                                                ],
-                                            ];
-                                            $opt = $optimizaciones[$bici['estado']] ?? ['icon' => 'ℹ️', 'texto' => '-', 'color' => '#64748b'];
+                                                ),
+                                            );
+                                            $opt = isset($optimizaciones[$bici['estado']]) ? $optimizaciones[$bici['estado']] : array('icon' => 'ℹ️', 'texto' => '-', 'color' => '#64748b');
                                             ?>
                                             <div style="display: flex; align-items: center; gap: 0.5rem; cursor: help;" title="Click para más detalles">
                                                 <span style="font-size: 1.2rem;"><?= $opt['icon'] ?></span>
@@ -655,16 +603,99 @@ $flash = getFlash();
         </div>
     </div>
 
+    <!-- Modal de Confirmación -->
+    <div id="modalConfirm" class="modal" style="display:none">
+        <div class="modal-backdrop" onclick="cerrarConfirm()"></div>
+        <div class="modal-content" style="max-width:420px">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmar acción</h3>
+                <button onclick="cerrarConfirm()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:1.5rem">
+                <div id="confirmIcon" style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+                <p id="confirmMessage" style="font-size:1rem;color:var(--text-primary);margin:0"></p>
+            </div>
+            <div class="modal-footer" style="justify-content:center;gap:1rem">
+                <button type="button" class="btn btn-secondary" onclick="cerrarConfirm()">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Éxito Global -->
+    <div id="toastGlobal" style="position:fixed;top:1.5rem;right:1.5rem;z-index:10000;display:none">
+        <div style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:1rem 1.5rem;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;font-weight:500;animation:toastSlideIn 0.4s ease">
+            <span style="font-size:1.25rem">✓</span>
+            <span id="toastMessage">Acción completada</span>
+        </div>
+    </div>
+    <style>
+    @keyframes toastSlideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes toastSlideOut { from{transform:translateX(0);opacity:1} to{transform:translateX(100%);opacity:0} }
+    </style>
+
     <script>
+    // === Theme Toggle ===
+    var themeToggle = document.getElementById('themeToggle');
+    var moonIcon = themeToggle.querySelector('.icon-moon');
+    var sunIcon = themeToggle.querySelector('.icon-sun');
+
+    var savedTheme = localStorage.getItem('tubi-theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'block';
+    } else {
+        document.body.removeAttribute('data-theme');
+        moonIcon.style.display = 'block';
+        sunIcon.style.display = 'none';
+    }
+
+    themeToggle.addEventListener('click', function() {
+        var isDark = document.body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            moonIcon.style.display = 'block';
+            sunIcon.style.display = 'none';
+            localStorage.setItem('tubi-theme', 'light');
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            moonIcon.style.display = 'none';
+            sunIcon.style.display = 'block';
+            localStorage.setItem('tubi-theme', 'dark');
+        }
+    });
+
+    // === Funciones de tabla ===
     function filtrarTabla() {
-        const filter = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('#tablaGestion tbody tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-        });
+        var searchEl = document.getElementById('searchInput');
+        var filter = searchEl ? searchEl.value.toLowerCase() : '';
+        var rows = document.querySelectorAll('#tablaGestion tbody tr');
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].className.indexOf('notif-row') >= 0) continue;
+            rows[i].style.display = rows[i].textContent.toLowerCase().indexOf(filter) >= 0 ? '' : 'none';
+        }
     }
 
     function exportarExcel() {
-        alert('📊 Exportando datos a Excel...\nEl archivo se descargará en breve.');
+        var table = document.getElementById('tablaGestion');
+        if (!table) return;
+        var csv = [];
+        var allRows = table.querySelectorAll('tr');
+        for (var r = 0; r < allRows.length; r++) {
+            if (allRows[r].className.indexOf('notif-row') >= 0) continue;
+            var cols = allRows[r].querySelectorAll('td, th');
+            var rowData = [];
+            for (var c = 0; c < cols.length; c++) {
+                rowData.push('"' + cols[c].textContent.trim().replace(/"/g, '""') + '"');
+            }
+            csv.push(rowData.join(','));
+        }
+        var blob = new Blob(['\uFEFF' + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'tubi_proveedor_' + new Date().toISOString().slice(0,10) + '.csv';
+        link.click();
     }
 
     function mostrarModalSuministrar(biciId, biciCodigo) {
@@ -677,191 +708,264 @@ $flash = getFlash();
         document.getElementById('modalSuministrar').style.display = 'none';
     }
 
-    // Auto-refresh cada 60 segundos para datos en tiempo real
-    setTimeout(() => location.reload(), 60000);
-    </script>
+    // === SISTEMA DE CONFIRMACION ===
+    var _confirmResolve = null;
 
-    <!-- Panel de Chat IA TuBi - Integrado -->
-    <div class="chat-panel-integrated">
-        <div class="chat-panel-header">
-            <div class="chat-panel-title">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="margin-right: 0.5rem;">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>🤖 Asistente IA TuBi</span>
-            </div>
-            <div class="chat-panel-subtitle">Consultas sobre gestión, optimización y procesos del sistema</div>
-        </div>
-        <div class="chat-panel-body">
-            <div class="chat-messages-panel" id="chatMessages">
-                <!-- Mensajes se cargan dinámicamente -->
-            </div>
-        </div>
-        <div class="chat-panel-footer">
-            <input type="text" class="chat-input-panel" id="chatInput" placeholder="Escribí tu consulta al asistente IA..." autocomplete="off">
-            <button class="chat-send-panel" id="chatSend" title="Enviar mensaje">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
+    function mostrarConfirm(titulo, mensaje, icono, callback) {
+        _confirmResolve = callback;
+        document.getElementById('confirmTitle').textContent = titulo;
+        document.getElementById('confirmMessage').textContent = mensaje;
+        document.getElementById('confirmIcon').textContent = icono || '⚠️';
+        document.getElementById('modalConfirm').style.display = 'flex';
+    }
+
+    function cerrarConfirm() {
+        document.getElementById('modalConfirm').style.display = 'none';
+        if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        document.getElementById('modalConfirm').style.display = 'none';
+        if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+    });
+
+    function showToast(message) {
+        var toast = document.getElementById('toastGlobal');
+        document.getElementById('toastMessage').textContent = message;
+        toast.style.display = 'block';
+        toast.querySelector('div').style.animation = 'toastSlideIn 0.4s ease';
+        setTimeout(function() {
+            toast.querySelector('div').style.animation = 'toastSlideOut 0.4s ease forwards';
+            setTimeout(function() { toast.style.display = 'none'; }, 400);
+        }, 3500);
+    }
+
+    // === SISTEMA DE ACCIONES EN TIEMPO REAL ===
+
+    function getConfirmMessage(action, biciId, formEl) {
+        var biciRow = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        var codeEl = biciRow ? biciRow.querySelector('td:first-child strong') : null;
+        var code = codeEl ? codeEl.textContent : '';
+        if (action === 'armar') return { title: 'Confirmar Armado', msg: 'Confirmar armado de bicicleta ' + code + '?', icon: '🔧' };
+        if (action === 'suministrar') {
+            var sel = document.querySelector('#modalSuministrar select[name="escuela_id"]');
+            var escNombre = (sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text : '';
+            return { title: 'Confirmar Suministro', msg: 'Suministrar ' + code + ' a ' + escNombre + '?', icon: '🚚' };
+        }
+        if (action === 'registrar_bici') return { title: 'Registrar Bicicleta', msg: 'Registrar nueva bicicleta en el sistema?', icon: '📋' };
+        return null;
+    }
+
+    function enviarAccion(form) {
+        var actionInput = form.querySelector('[name="action"]');
+        if (!actionInput) return;
+        var action = actionInput.value;
+        var biciIdInput = form.querySelector('[name="bici_id"]');
+        var biciId = biciIdInput ? biciIdInput.value : '';
+
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.className += ' btn-processing';
+            btn.setAttribute('data-orig', btn.innerHTML);
+            btn.innerHTML = '⏳ Procesando...';
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', window.location.href, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            showToast(data.message);
+                            if (action === 'armar') {
+                                handleArmarSuccess(biciId, data);
+                            } else if (action === 'suministrar') {
+                                cerrarModal();
+                                handleSuministrarSuccess(biciId, data);
+                            } else if (action === 'registrar_bici') {
+                                handleRegistrarSuccess(form, data);
+                            }
+                            // Actualizar contadores en tiempo real
+                            if (data.stats) {
+                                updateFlowDiagram(data.stats);
+                                updateStatCards(data.stats);
+                            }
+                        } else {
+                            var row = null;
+                            var parent = form.parentNode;
+                            while (parent) {
+                                if (parent.nodeName === 'TR') { row = parent; break; }
+                                parent = parent.parentNode;
+                            }
+                            if (row) showRowNotif(row, 'error', data.message);
+                            else showElementNotif(form, 'error', data.message);
+                            restoreBtn(btn);
+                        }
+                    } catch(ex) {
+                        alert('Error procesando respuesta');
+                        restoreBtn(btn);
+                    }
+                } else {
+                    alert('Error de conexion');
+                    restoreBtn(btn);
+                }
+            }
+        };
+        var fd = new FormData(form);
+        xhr.send(fd);
+    }
+
+    // Interceptar TODOS los form submits con confirmacion
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        var actionInput = form.querySelector('[name="action"]');
+        if (!actionInput) return;
+
+        e.preventDefault();
+        var action = actionInput.value;
+        var biciIdInput = form.querySelector('[name="bici_id"]');
+        var biciId = biciIdInput ? biciIdInput.value : '';
+
+        var confirmInfo = getConfirmMessage(action, biciId, form);
+        if (confirmInfo) {
+            mostrarConfirm(confirmInfo.title, confirmInfo.msg, confirmInfo.icon, function(confirmed) {
+                if (confirmed) enviarAccion(form);
+            });
+        } else {
+            enviarAccion(form);
+        }
+    });
+
+    function restoreBtn(btn) {
+        if (btn) {
+            btn.className = btn.className.replace(' btn-processing', '');
+            btn.innerHTML = btn.getAttribute('data-orig') || 'Accion';
+        }
+    }
+
+    // === Handlers por accion ===
+
+    function handleArmarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'armada');
+        var badge = row.querySelector('.badge');
+        badge.className = 'badge badge-warning';
+        badge.textContent = 'Armada';
+        var code = row.querySelector('td:first-child strong').textContent;
+        row.querySelector('td:last-child').innerHTML = '<button class="btn btn-primary btn-sm" onclick="mostrarModalSuministrar(' + biciId + ', \'' + code + '\')">🚚 Suministrar</button>';
+        var cells = row.querySelectorAll('td');
+        if (cells[4]) {
+            cells[4].innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem"><span style="font-size:1.2rem">📦</span><small style="color:#06b6d4;font-weight:500">Agrupar envios por zona</small></div>';
+        }
+        row.className += ' row-success';
+        setTimeout(function() { row.className = row.className.replace(' row-success', ''); }, 2100);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function handleSuministrarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'en_escuela');
+        var badge = row.querySelector('.badge');
+        badge.className = 'badge badge-info';
+        badge.textContent = 'En Escuela';
+        var cells = row.querySelectorAll('td');
+        if (cells[3]) {
+            cells[3].innerHTML = '<small class="text-success">📍 ' + data.escuela_nombre + '</small>';
+        }
+        row.querySelector('td:last-child').innerHTML = '<span class="text-info">📦 En transito</span>';
+        if (cells[4]) {
+            cells[4].innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem"><span style="font-size:1.2rem">✓</span><small style="color:#22c55e;font-weight:500">Listo para asignacion</small></div>';
+        }
+        row.className += ' row-success';
+        setTimeout(function() { row.className = row.className.replace(' row-success', ''); }, 2100);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function handleRegistrarSuccess(form, data) {
+        showElementNotif(form, 'success', '✓ ' + data.message);
+        form.reset();
+        setTimeout(function() { location.reload(); }, 2000);
+    }
+
+    // === Notificaciones inline ===
+
+    function showRowNotif(row, type, message) {
+        var bId = row.getAttribute('data-bici-id');
+        var prev = row.parentNode.querySelector('.notif-row[data-for="' + bId + '"]');
+        if (prev) prev.parentNode.removeChild(prev);
+        var notifRow = document.createElement('tr');
+        notifRow.className = 'notif-row';
+        notifRow.setAttribute('data-for', bId);
+        var colCount = row.querySelectorAll('td').length;
+        var icon = type === 'success' ? '✓' : '✕';
+        notifRow.innerHTML = '<td colspan="' + colCount + '"><div class="inline-notif ' + type + '"><span class="notif-icon">' + icon + '</span><span>' + message + '</span></div></td>';
+        row.parentNode.insertBefore(notifRow, row.nextSibling);
+        setTimeout(function() { notifRow.style.transition = 'opacity 0.5s'; notifRow.style.opacity = '0'; setTimeout(function() { if (notifRow.parentNode) notifRow.parentNode.removeChild(notifRow); }, 500); }, 4000);
+    }
+
+    function showElementNotif(element, type, message) {
+        var prev = element.parentNode.querySelector('.inline-notif');
+        if (prev) prev.parentNode.removeChild(prev);
+        var notif = document.createElement('div');
+        notif.className = 'inline-notif ' + type;
+        var icon = type === 'success' ? '✓' : '✕';
+        notif.innerHTML = '<span class="notif-icon">' + icon + '</span><span>' + message + '</span>';
+        element.parentNode.insertBefore(notif, element.nextSibling);
+        setTimeout(function() { notif.style.transition = 'opacity 0.5s'; notif.style.opacity = '0'; setTimeout(function() { if (notif.parentNode) notif.parentNode.removeChild(notif); }, 500); }, 4000);
+    }
+
+    // === Actualizar contadores en tiempo real ===
+
+    function updateFlowDiagram(stats) {
+        var badges = document.querySelectorAll('.flow-badge');
+        if (badges.length >= 4) {
+            animateNum(badges[0], stats.en_deposito);
+            animateNum(badges[1], stats.armadas);
+            animateNum(badges[2], stats.suministradas);
+            animateNum(badges[3], stats.en_escuelas);
+        }
+    }
+
+    function updateStatCards(stats) {
+        var statVals = document.querySelectorAll('.stats-grid-4 .stat-value');
+        if (statVals.length >= 4) {
+            animateNum(statVals[0], stats.en_deposito);
+            animateNum(statVals[1], stats.armadas);
+            animateNum(statVals[2], stats.suministradas);
+            animateNum(statVals[3], stats.en_escuelas);
+        }
+        var prodVals = document.querySelectorAll('.prod-value');
+        if (prodVals.length >= 4) {
+            animateNum(prodVals[0], stats.armadas_hoy);
+            animateNum(prodVals[1], stats.esta_semana);
+            animateNum(prodVals[2], stats.promedio_dia);
+            animateNum(prodVals[3], stats.pendientes);
+        }
+    }
+
+    function animateNum(el, newVal) {
+        if (!el) return;
+        var old = parseInt(el.textContent) || 0;
+        if (old === newVal) return;
+        el.textContent = newVal;
+        el.className += ' num-updated';
+        setTimeout(function() { el.className = el.className.replace(' num-updated', ''); }, 600);
+    }
+
+    // Auto-refresh cada 90 segundos
+    setTimeout(function() { location.reload(); }, 90000);
+    </script>
 
     <!-- Tutorial -->
     <?php include __DIR__ . '/../../includes/tutorial.php'; ?>
 
     <script src="<?= BASE_URL ?>assets/js/toast.js"></script>
-    <script>
-    // Chat IA Integrado - Panel completo
-    (function() {
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const chatSend = document.getElementById('chatSend');
 
-        if (!chatMessages || !chatInput || !chatSend) return;
-
-        let conversationHistory = [];
-        let welcomeShown = false;
-
-        // Cargar mensaje de bienvenida al cargar la página
-        window.addEventListener('load', function() {
-            if (!welcomeShown) {
-                loadWelcomeMessage();
-                welcomeShown = true;
-            }
-        });
-
-        // Enviar mensaje al hacer click
-        chatSend.addEventListener('click', sendMessage);
-
-        // Enviar mensaje con Enter
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // Cargar mensaje de bienvenida
-        function loadWelcomeMessage() {
-            const baseUrl = '<?= BASE_URL ?>';
-            fetch(baseUrl + 'api/chat.php?action=welcome')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.content) {
-                        addMessage(data.content, 'assistant');
-                    }
-                })
-                .catch(error => {
-                    addMessage('¡Hola! Soy el Asistente TuBi. Estoy aquí para ayudarte con consultas sobre:\n\n• Gestión de inventario\n• Procesos de armado y suministro\n• Optimización de flujos de trabajo\n• Estadísticas y reportes\n\n¿En qué puedo ayudarte?', 'assistant');
-                });
-        }
-
-        // Enviar mensaje
-        function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
-
-            // Agregar mensaje del usuario
-            addMessage(message, 'user');
-            chatInput.value = '';
-            chatInput.disabled = true;
-            chatSend.disabled = true;
-
-            // Mostrar indicador de escritura
-            const loadingDiv = showLoading();
-
-            const baseUrl = '<?= BASE_URL ?>';
-            fetch(baseUrl + 'api/chat.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: message,
-                    history: conversationHistory.slice(-10)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                removeLoading(loadingDiv);
-                chatInput.disabled = false;
-                chatSend.disabled = false;
-                chatInput.focus();
-
-                if (data.content) {
-                    addMessage(data.content, 'assistant');
-                    conversationHistory.push({ role: 'user', content: message });
-                    conversationHistory.push({ role: 'assistant', content: data.content });
-                } else if (data.error) {
-                    addMessage('Disculpá, no pude procesar tu mensaje. ¿Podés reformularlo?', 'assistant');
-                }
-            })
-            .catch(error => {
-                removeLoading(loadingDiv);
-                chatInput.disabled = false;
-                chatSend.disabled = false;
-                chatInput.focus();
-                addMessage('Error de conexión. Por favor, intentá de nuevo.', 'assistant');
-            });
-        }
-
-        // Agregar mensaje al chat
-        function addMessage(content, role) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'chat-message ' + role;
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'chat-message-content';
-            contentDiv.innerHTML = formatMessage(content);
-
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'chat-message-time';
-            const now = new Date();
-            timeDiv.textContent = now.getHours().toString().padStart(2, '0') + ':' +
-                                 now.getMinutes().toString().padStart(2, '0');
-
-            messageDiv.appendChild(contentDiv);
-            messageDiv.appendChild(timeDiv);
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Formatear mensaje
-        function formatMessage(text) {
-            text = text.replace(/\n/g, '<br>');
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            text = text.replace(/• /g, '&bull; ');
-            text = text.replace(/- /g, '&bull; ');
-            return text;
-        }
-
-        // Mostrar indicador de carga
-        function showLoading() {
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'chat-message assistant';
-            loadingDiv.innerHTML = `
-                <div class="chat-message-content">
-                    <div class="chat-loading">
-                        <div class="chat-loading-dot"></div>
-                        <div class="chat-loading-dot"></div>
-                        <div class="chat-loading-dot"></div>
-                    </div>
-                </div>
-            `;
-            chatMessages.appendChild(loadingDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return loadingDiv;
-        }
-
-        // Eliminar indicador de carga
-        function removeLoading(loadingDiv) {
-            if (loadingDiv && loadingDiv.parentNode) {
-                loadingDiv.remove();
-            }
-        }
-    })();
-    </script>
+    <?php include __DIR__ . '/../../includes/zocalo-footer.php'; ?>
 </body>
 </html>

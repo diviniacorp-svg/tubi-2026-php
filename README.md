@@ -10,7 +10,6 @@ TuBi es un sistema web desarrollado en PHP para la gestión integral del program
 
 - 🚲 Gestión completa de bicicletas (registro, armado, suministro, entrega)
 - 👥 Múltiples roles: Estudiante, Tutor, Escuela, Proveedor, Administrador
-- 🤖 Asistente IA integrado (Google Gemini) contextualizado por rol
 - 🎮 Sistema de gamificación para estudiantes (retos, logros, módulos)
 - 📊 Dashboards en tiempo real con estadísticas
 - 🌓 Modo claro/oscuro en todos los paneles
@@ -44,13 +43,7 @@ TuBi es un sistema web desarrollado en PHP para la gestión integral del program
    - Si está en raíz: `BASE_URL=/`
    - Editar en `config/config.php` línea 49
 
-4. **Configurar API de Gemini** (REQUERIDO para chat IA)
-   - Obtener API Key en: https://makersuite.google.com/app/apikey
-   - Crear archivo `.env` copiando `.env.example`
-   - Editar `.env` y agregar: `GEMINI_API_KEY=tu_clave_aqui`
-   - **IMPORTANTE**: El archivo `.env` no debe compartirse públicamente
-
-5. **Verificar permisos**
+4. **Verificar permisos**
    ```bash
    chmod 755 -R /var/www/html/tubi
    ```
@@ -82,9 +75,6 @@ tubi-php/
 │   ├── proveedor/          # Dashboard proveedor
 │   └── tutor/              # Dashboard tutor
 ├── api/
-│   └── chat.php            # Endpoint API de chat
-├── services/
-│   └── GeminiService.php   # Servicio de IA
 ├── includes/
 │   ├── header.php          # Header común
 │   ├── footer.php          # Footer común
@@ -114,12 +104,6 @@ tubi-php/
 
 - Click en el botón sol/luna en la esquina superior derecha
 - El tema se guarda en localStorage del navegador
-
-### Usar Chat IA
-
-- Click en el botón flotante de chat (esquina inferior derecha)
-- Hacer preguntas contextualizadas según tu rol
-- El asistente tiene conocimiento específico del programa TuBi
 
 ## Notas Importantes
 

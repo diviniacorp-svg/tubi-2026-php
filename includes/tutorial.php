@@ -14,25 +14,19 @@ $tutoriales = [
                 'icono' => '🏠',
                 'titulo' => 'Mi TuBi',
                 'descripcion' => 'Acá podés ver el estado de tu bicicleta, tus puntos acumulados y los logros que has desbloqueado.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '📚',
                 'titulo' => 'Aprendé Jugando',
                 'descripcion' => 'Completá los módulos de aprendizaje: mirá los videos y respondé las preguntas para ganar puntos.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '🎮',
                 'titulo' => 'Retos Diarios',
                 'descripcion' => 'Cada día tenés nuevos retos según la hora: matutinos, de tarde y nocturnos. ¡Completalos para ganar más puntos!',
-                'color' => '#2563eb'
-            ],
-            [
-                'icono' => '💬',
-                'titulo' => 'Chat TuBi',
-                'descripcion' => 'Usá el chat de abajo a la derecha para preguntarme cualquier duda sobre tu bici, seguridad vial o el programa.',
-                'color' => '#06b6d4'
+                'color' => '#354393'
             ],
             [
                 'icono' => '🛡️',
@@ -50,13 +44,13 @@ $tutoriales = [
                 'icono' => '📦',
                 'titulo' => 'Recepción',
                 'descripcion' => 'Recibí las bicicletas del depósito y escaneá el código QR para registrar la recepción en el sistema.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '🔧',
                 'titulo' => 'Armado',
                 'descripcion' => 'Armá la bicicleta completamente: manubrio, pedales, asiento, ruedas. Verificá frenos y dirección.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '✅',
@@ -68,13 +62,13 @@ $tutoriales = [
                 'icono' => '📱',
                 'titulo' => 'Registro',
                 'descripcion' => 'Escaneá el QR de armado completado para registrar la bici como lista para suministro.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '🚚',
                 'titulo' => 'Suministro',
                 'descripcion' => 'Coordiná la entrega a las escuelas asignadas. Verificá las órdenes de suministro pendientes.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ]
         ]
     ],
@@ -86,13 +80,13 @@ $tutoriales = [
                 'icono' => '📋',
                 'titulo' => 'Dashboard',
                 'descripcion' => 'Visualizá el resumen de bicicletas recibidas, entregadas y pendientes de tu institución.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '👥',
                 'titulo' => 'Alumnos',
                 'descripcion' => 'Gestioná la lista de alumnos beneficiarios. Verificá documentación y asigná bicicletas.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '🚲',
@@ -104,13 +98,13 @@ $tutoriales = [
                 'icono' => '📝',
                 'titulo' => 'Documentación',
                 'descripcion' => 'Generá las actas de entrega y reportes de gestión para la Secretaría de Transporte.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '📊',
                 'titulo' => 'Reportes',
                 'descripcion' => 'Consultá estadísticas de entregas, estado de bicicletas y progreso de los alumnos en los módulos.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ]
         ]
     ],
@@ -122,31 +116,25 @@ $tutoriales = [
                 'icono' => '📈',
                 'titulo' => 'Dashboard',
                 'descripcion' => 'Visualizá métricas en tiempo real: total de bicicletas, entregas, distribución por zona y rendimiento.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '👤',
                 'titulo' => 'Usuarios',
                 'descripcion' => 'Gestioná todos los usuarios del sistema: alumnos, tutores, escuelas, proveedores y administradores.',
-                'color' => '#06b6d4'
-            ],
-            [
-                'icono' => '🤖',
-                'titulo' => 'Base IA',
-                'descripcion' => 'Cargá documentos PDF para alimentar la base de conocimiento del asistente TuBi.',
-                'color' => '#22c55e'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '⚙️',
                 'titulo' => 'Configuración',
                 'descripcion' => 'Ajustá parámetros del sistema, API keys, y configuración general del programa.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '📊',
                 'titulo' => 'Reportes',
                 'descripcion' => 'Generá reportes detallados para la Secretaría de Transporte y autoridades provinciales.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ]
         ]
     ],
@@ -158,13 +146,13 @@ $tutoriales = [
                 'icono' => '👁️',
                 'titulo' => 'Estado',
                 'descripcion' => 'Consultá el estado de la bicicleta asignada a tu representado/a y el proceso de entrega.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
             [
                 'icono' => '📊',
                 'titulo' => 'Progreso',
                 'descripcion' => 'Mirá el avance en los módulos de aprendizaje y puntos acumulados.',
-                'color' => '#2563eb'
+                'color' => '#354393'
             ],
             [
                 'icono' => '📄',
@@ -176,21 +164,15 @@ $tutoriales = [
                 'icono' => '🔔',
                 'titulo' => 'Notificaciones',
                 'descripcion' => 'Recibí alertas sobre el uso de la bicicleta y recordatorios importantes.',
-                'color' => '#06b6d4'
+                'color' => '#4aacc4'
             ],
-            [
-                'icono' => '💬',
-                'titulo' => 'Soporte',
-                'descripcion' => 'Usá el chat para consultas sobre el programa, documentación o incidencias.',
-                'color' => '#2563eb'
-            ]
         ]
     ]
 ];
 
 // Obtener tutorial del rol actual
-$rolActual = $user['role'] ?? 'alumno';
-$tutorial = $tutoriales[$rolActual] ?? $tutoriales['alumno'];
+$rolActual = isset($user['role']) ? $user['role'] : 'alumno';
+$tutorial = isset($tutoriales[$rolActual]) ? $tutoriales[$rolActual] : $tutoriales['alumno'];
 
 // Verificar si el usuario ya vio el tutorial
 $tutorialKey = 'tubi_tutorial_' . $rolActual;
@@ -201,14 +183,7 @@ $tutorialVisto = isset($_COOKIE[$tutorialKey]);
 <div class="tutorial-overlay" id="tutorialOverlay" style="<?= $tutorialVisto ? 'display:none;' : '' ?>">
     <div class="tutorial-modal">
         <div class="tutorial-header">
-            <div class="tutorial-logo">
-                <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 10 H20" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M4 20 H25" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M4 30 H20" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
-                    <text x="32" y="28" font-family="Ubuntu, sans-serif" font-size="24" font-weight="700" fill="currentColor">TuBi</text>
-                </svg>
-            </div>
+            <div class="tutorial-logo"></div>
             <button class="tutorial-close" onclick="closeTutorial()" title="Cerrar">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -415,7 +390,7 @@ $tutorialVisto = isset($_COOKIE[$tutorialKey]);
 }
 
 .dot.active {
-    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    background: linear-gradient(135deg, #354393, #4aacc4);
     width: 24px;
     border-radius: 5px;
 }
@@ -443,7 +418,7 @@ $tutorialVisto = isset($_COOKIE[$tutorialKey]);
 }
 
 .btn-tutorial-primary {
-    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    background: linear-gradient(135deg, #354393, #4aacc4);
     color: white;
     border: none;
 }
@@ -474,7 +449,7 @@ $tutorialVisto = isset($_COOKIE[$tutorialKey]);
     position: fixed;
     bottom: 100px;
     right: 1rem;
-    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    background: linear-gradient(135deg, #354393, #4aacc4);
     color: white;
     border: none;
     padding: 0.75rem 1rem;
@@ -521,8 +496,8 @@ $tutorialVisto = isset($_COOKIE[$tutorialKey]);
 </style>
 
 <script>
-let currentStep = 0;
-const totalSteps = <?= count($tutorial['pasos']) ?>;
+var currentStep = 0;
+var totalSteps = <?php echo count($tutorial['pasos']); ?>;
 
 function openTutorial() {
     document.getElementById('tutorialOverlay').style.display = 'flex';
@@ -532,8 +507,7 @@ function openTutorial() {
 
 function closeTutorial() {
     document.getElementById('tutorialOverlay').style.display = 'none';
-    // Guardar cookie para no mostrar automáticamente
-    document.cookie = '<?= $tutorialKey ?>=1; path=/; max-age=31536000';
+    document.cookie = '<?php echo $tutorialKey; ?>=1; path=/; max-age=31536000';
 }
 
 function nextStep() {
@@ -558,31 +532,43 @@ function goToStep(step) {
 }
 
 function updateStep() {
-    // Actualizar pasos
-    document.querySelectorAll('.tutorial-step').forEach((el, i) => {
-        el.classList.toggle('active', i === currentStep);
-    });
+    var steps = document.querySelectorAll('.tutorial-step');
+    var dots = document.querySelectorAll('.dot');
+    var i;
 
-    // Actualizar dots
-    document.querySelectorAll('.dot').forEach((el, i) => {
-        el.classList.toggle('active', i === currentStep);
-    });
+    for (i = 0; i < steps.length; i++) {
+        if (i === currentStep) {
+            steps[i].className = steps[i].className.replace(' active', '') + ' active';
+        } else {
+            steps[i].className = steps[i].className.replace(' active', '');
+        }
+    }
 
-    // Actualizar botones
+    for (i = 0; i < dots.length; i++) {
+        if (i === currentStep) {
+            dots[i].className = dots[i].className.replace(' active', '') + ' active';
+        } else {
+            dots[i].className = dots[i].className.replace(' active', '');
+        }
+    }
+
     document.getElementById('btnPrev').disabled = currentStep === 0;
 
-    const btnNext = document.getElementById('btnNext');
+    var btnNext = document.getElementById('btnNext');
     if (currentStep === totalSteps - 1) {
-        btnNext.innerHTML = '¡Entendido! <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+        btnNext.innerHTML = '&iexcl;Entendido! <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
     } else {
         btnNext.innerHTML = 'Siguiente <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
     }
 }
 
 // Click en dots
-document.querySelectorAll('.dot').forEach(dot => {
-    dot.addEventListener('click', () => {
-        goToStep(parseInt(dot.dataset.step));
-    });
-});
+var allDots = document.querySelectorAll('.dot');
+for (var d = 0; d < allDots.length; d++) {
+    (function(dot) {
+        dot.addEventListener('click', function() {
+            goToStep(parseInt(dot.getAttribute('data-step'), 10));
+        });
+    })(allDots[d]);
+}
 </script>

@@ -1,4 +1,4 @@
-/* TUBI 2026 - Interfaz 0 Cinematográfica */
+/* TUBI 2026 - Pantalla de Intro */
 
 body.intro-page {
     margin: 0;
@@ -6,115 +6,387 @@ body.intro-page {
     font-family: 'Ubuntu', -apple-system, sans-serif;
     min-height: 100vh;
     overflow: hidden;
-    background: #0B1220;
+    background: #354393;
 }
 
 .intro-container {
     min-height: 100vh;
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
 }
 
-/* Fase 1: Imagen de fondo completa */
-.intro-background {
+/* Fondo degradado azul a turquesa */
+.intro-gradient-bg {
     position: absolute;
-    inset: 0;
-    background-image: url('../img/intro-central.png');
-    background-size: cover;
-    background-position: center;
-    filter: saturate(0.7) brightness(0.9);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #354393 0%, #3a5aab 30%, #4aacc4 70%, #4aacc4 100%);
     z-index: 1;
 }
 
-.intro-background::after {
-    content: '';
+/* Logo TuBi como marca de agua grande centrada */
+.intro-watermark {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(11, 18, 32, 0.3) 0%, rgba(53, 67, 147, 0.4) 100%);
-}
-
-/* Fase 2: Split screen (división) */
-.intro-split-left,
-.intro-split-right {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 50%;
-    background-image: url('../img/intro-central.png');
-    background-size: cover;
-    filter: saturate(0.7) brightness(0.9);
-    z-index: 5;
-    animation: none;
+    z-index: 2;
+    width: 550px;
+    top: 45%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -55%);
+    transform: translate(-50%, -55%);
     opacity: 0;
-    pointer-events: none;
+    -webkit-animation: watermarkFadeIn 1.5s ease-out 0.3s forwards;
+    animation: watermarkFadeIn 1.5s ease-out 0.3s forwards;
 }
 
-.intro-split-left {
-    left: 0;
-    background-position: left center;
-}
-
-.intro-split-right {
-    right: 0;
-    background-position: right center;
-}
-
-.intro-container.phase-split .intro-background {
-    opacity: 0;
-}
-
-.intro-container.phase-split .intro-split-left {
-    opacity: 1;
-    animation: splitLeft 0.8s ease-out forwards;
-}
-
-.intro-container.phase-split .intro-split-right {
-    opacity: 1;
-    animation: splitRight 0.8s ease-out forwards;
-}
-
-@keyframes splitLeft {
-    to { transform: translateX(-100%); }
-}
-
-@keyframes splitRight {
-    to { transform: translateX(100%); }
-}
-
-/* Fase 3: Logo TuBi aparece y se infla */
-.intro-logo {
-    position: absolute;
-    z-index: 10;
-    opacity: 0;
-    transform: scale(0.5);
-}
-
-.intro-container.phase-logo .intro-logo {
-    animation: logoAppear 1s ease-out forwards;
-}
-
-@keyframes logoAppear {
-    0% {
-        opacity: 0;
-        transform: scale(0.5);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.2);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.intro-logo svg {
-    width: 300px;
+.intro-watermark svg {
+    width: 100%;
     height: auto;
-    filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
+}
+
+@-webkit-keyframes watermarkFadeIn {
+    0% { opacity: 0; -webkit-transform: translate(-50%, -55%) scale(0.8); transform: translate(-50%, -55%) scale(0.8); }
+    100% { opacity: 1; -webkit-transform: translate(-50%, -55%) scale(1); transform: translate(-50%, -55%) scale(1); }
+}
+@keyframes watermarkFadeIn {
+    0% { opacity: 0; transform: translate(-50%, -55%) scale(0.8); }
+    100% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
+}
+
+/* Contenido central */
+.intro-content {
+    position: relative;
+    z-index: 3;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 1.5rem;
+    width: 100%;
+}
+
+/* Texto SAN LUIS 2026 */
+.intro-location {
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0;
+    -webkit-animation: fadeInUp 0.8s ease-out 0.6s forwards;
+    animation: fadeInUp 0.8s ease-out 0.6s forwards;
+}
+
+/* Iconos en fila */
+.intro-icons {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    -webkit-animation: fadeInUp 0.8s ease-out 0.9s forwards;
+    animation: fadeInUp 0.8s ease-out 0.9s forwards;
+}
+
+.intro-icon {
+    width: 38px;
+    height: 38px;
+    color: rgba(255, 255, 255, 0.7);
+    -webkit-transition: color 0.3s ease, -webkit-transform 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
+    -webkit-animation: floatIcon 4s ease-in-out infinite;
+    animation: floatIcon 4s ease-in-out infinite;
+}
+
+.intro-icon:nth-child(1) { -webkit-animation-delay: 0s; animation-delay: 0s; }
+.intro-icon:nth-child(2) { -webkit-animation-delay: 0.3s; animation-delay: 0.3s; }
+.intro-icon:nth-child(3) { -webkit-animation-delay: 0.6s; animation-delay: 0.6s; }
+.intro-icon:nth-child(4) { -webkit-animation-delay: 0.9s; animation-delay: 0.9s; }
+.intro-icon:nth-child(5) { -webkit-animation-delay: 1.2s; animation-delay: 1.2s; }
+
+.intro-icon svg {
+    width: 100%;
+    height: 100%;
+    -webkit-filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* ==========================================
+   CUADRO DE ESTADÍSTICAS EN VIVO
+   Colores institucionales TuBi
+   Azul #354393 | Turquesa #2EC4C6
+   ========================================== */
+.intro-stats-card {
+    width: 92%;
+    max-width: 400px;
+    background: linear-gradient(145deg, rgba(53, 67, 147, 0.85), rgba(46, 196, 198, 0.35));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    padding: 0.9rem 1.2rem;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    -webkit-animation: scaleIn 0.5s ease-out 1.2s forwards;
+    animation: scaleIn 0.5s ease-out 1.2s forwards;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.intro-stats-header {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.intro-stats-dot {
+    width: 7px;
+    height: 7px;
+    background: #2EC4C6;
+    border-radius: 50%;
+    display: inline-block;
+    -webkit-animation: livePulse 1.5s ease-in-out infinite;
+    animation: livePulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 6px rgba(46, 196, 198, 0.6);
+}
+
+.intro-stats-grid {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.intro-stat-item {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    flex: 1;
+    text-align: center;
+}
+
+.intro-stat-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.12);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.intro-stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    -webkit-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+}
+
+.intro-stat-value.updating {
+    -webkit-transform: scale(1.2);
+    transform: scale(1.2);
+    color: #2EC4C6;
+}
+
+.intro-stat-label {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Barra de progreso dentro del cuadro */
+.intro-stats-progress {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.6rem;
+}
+
+.intro-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.intro-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2EC4C6, #7dd3fc);
+    border-radius: 10px;
+    -webkit-transition: width 0.8s ease;
+    transition: width 0.8s ease;
+    min-width: 0;
+    box-shadow: 0 0 8px rgba(46, 196, 198, 0.4);
+}
+
+.intro-progress-text {
+    display: block;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+    margin-top: 0.35rem;
+}
+
+/* Animación de entrada del cuadro */
+@-webkit-keyframes scaleIn {
+    0% { opacity: 0; -webkit-transform: scale(0.9) translateY(10px); transform: scale(0.9) translateY(10px); }
+    100% { opacity: 1; -webkit-transform: scale(1) translateY(0); transform: scale(1) translateY(0); }
+}
+@keyframes scaleIn {
+    0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@-webkit-keyframes livePulse {
+    0%, 100% { opacity: 1; -webkit-transform: scale(1); transform: scale(1); }
+    50% { opacity: 0.4; -webkit-transform: scale(0.8); transform: scale(0.8); }
+}
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Barra de carga */
+.intro-loading-bar {
+    width: 260px;
+    max-width: 60vw;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0;
+    -webkit-animation: fadeInUp 0.6s ease-out 1.5s forwards;
+    animation: fadeInUp 0.6s ease-out 1.5s forwards;
+}
+
+.intro-loading-fill {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    -webkit-animation: loadingProgress 2.5s ease-in-out forwards;
+    animation: loadingProgress 2.5s ease-in-out forwards;
+    -webkit-animation-delay: 1.8s;
+    animation-delay: 1.8s;
+    width: 0%;
+}
+
+@-webkit-keyframes loadingProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+@keyframes loadingProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* Botón Ingresar al Sistema */
+.intro-enter-btn {
+    display: -webkit-inline-box;
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 0.75rem 1.75rem;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: 'Ubuntu', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    opacity: 0;
+    -webkit-transform: translateY(10px);
+    transform: translateY(10px);
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.intro-enter-btn.visible {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.intro-enter-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
+}
+
+.intro-enter-btn svg {
+    -webkit-transition: -webkit-transform 0.3s;
+    transition: transform 0.3s;
+}
+
+.intro-enter-btn:hover svg {
+    -webkit-transform: translateX(3px);
+    transform: translateX(3px);
 }
 
 /* Botón Saltar */
@@ -123,15 +395,17 @@ body.intro-page {
     top: 1.5rem;
     right: 1.5rem;
     background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.9);
-    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.5rem 1.2rem;
     border-radius: 20px;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-family: inherit;
     cursor: pointer;
+    -webkit-transition: all 0.3s;
     transition: all 0.3s;
     z-index: 100;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -141,111 +415,71 @@ body.intro-page {
     border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Fase 1: Contenido sobre la imagen */
-.intro-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    width: 100%;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.intro-container.phase-split .intro-content,
-.intro-container.phase-logo .intro-content {
-    animation: fadeOut 0.3s ease-out forwards;
-}
-
-/* Barra de carga */
-.intro-loading-bar {
-    width: 300px;
-    max-width: 80vw;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 3rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.intro-loading-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #2EC4C6 0%, #354393 100%);
-    border-radius: 10px;
-    animation: loadingProgress 3.5s ease-out forwards;
-    box-shadow: 0 0 20px rgba(46, 196, 198, 0.5);
-}
-
-@keyframes loadingProgress {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-
-/* Iconos */
-.intro-icons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    padding: 1rem;
-    background: rgba(11, 18, 32, 0.6);
-    border-radius: 50px;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    animation: fadeIn 1s ease-out 0.3s both;
-}
-
-.intro-icon {
-    width: 36px;
-    height: 36px;
-    color: rgba(255, 255, 255, 0.9);
-    animation: floatIcon 3s ease-in-out infinite;
-}
-
-.intro-icon:nth-child(1) { animation-delay: 0s; }
-.intro-icon:nth-child(2) { animation-delay: 0.2s; }
-.intro-icon:nth-child(3) { animation-delay: 0.4s; }
-.intro-icon:nth-child(4) { animation-delay: 0.6s; }
-.intro-icon:nth-child(5) { animation-delay: 0.8s; }
-
-.intro-icon svg {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
-}
-
 /* Animaciones */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@-webkit-keyframes fadeInUp {
+    0% { opacity: 0; -webkit-transform: translateY(15px); transform: translateY(15px); }
+    100% { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(15px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeOut {
-    to { opacity: 0; }
+@-webkit-keyframes floatIcon {
+    0%, 100% { -webkit-transform: translateY(0); transform: translateY(0); }
+    50% { -webkit-transform: translateY(-6px); transform: translateY(-6px); }
 }
-
 @keyframes floatIcon {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    50% { transform: translateY(-6px); }
 }
 
-/* Fade out final */
+/* Fade out para transición */
 .intro-container.fade-out {
+    -webkit-animation: introFadeOut 0.5s ease forwards;
     animation: introFadeOut 0.5s ease forwards;
 }
 
-@keyframes introFadeOut {
-    to { opacity: 0; }
+@-webkit-keyframes introFadeOut { to { opacity: 0; } }
+@keyframes introFadeOut { to { opacity: 0; } }
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+    .intro-watermark { width: 400px; }
+    .intro-icons { gap: 2rem; }
+    .intro-icon { width: 32px; height: 32px; }
+    .intro-location { font-size: 0.95rem; letter-spacing: 0.3em; }
+    .intro-stat-value { font-size: 1.4rem; }
+    .intro-stats-card { max-width: 360px; }
 }
 
-/* Responsive */
 @media (max-width: 480px) {
-    .intro-loading-bar { width: 250px; }
-    .intro-icons { gap: 1.5rem; padding: 0.75rem 1.5rem; }
-    .intro-icon { width: 30px; height: 30px; }
+    .intro-content { padding: 1.2rem 0.75rem; }
+    .intro-watermark { width: 280px; }
+    .intro-icons { gap: 1.5rem; margin-bottom: 1.5rem; }
+    .intro-icon { width: 26px; height: 26px; }
+    .intro-location { font-size: 0.8rem; letter-spacing: 0.25em; margin-bottom: 1.5rem; }
+    .intro-loading-bar { width: 200px; }
     .intro-skip { top: 1rem; right: 1rem; padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-    .intro-logo svg { width: 200px; }
+    .intro-enter-btn { font-size: 0.85rem; padding: 0.65rem 1.5rem; }
+
+    .intro-stats-card {
+        width: 95%;
+        max-width: 100%;
+        padding: 0.75rem 0.9rem;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+    }
+    .intro-stat-value { font-size: 1.3rem; }
+    .intro-stat-label { font-size: 0.55rem; }
+    .intro-stat-divider { height: 24px; }
+    .intro-stats-header { font-size: 0.55rem; letter-spacing: 0.15em; }
+}
+
+@media (max-width: 360px) {
+    .intro-stat-value { font-size: 1.15rem; }
+    .intro-stats-card { padding: 0.65rem 0.7rem; }
+    .intro-stat-divider { display: none; }
 }

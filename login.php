@@ -12,7 +12,7 @@ if (isLoggedIn()) {
 
 // Validar rol desde URL
 $allowedRoles = ['alumno', 'tutor', 'escuela', 'proveedor', 'admin'];
-$role = $_GET['role'] ?? 'alumno';
+$role = isset($_GET['role']) ? $_GET['role'] : 'alumno';
 if (!in_array($role, $allowedRoles)) {
     $role = 'alumno';
 }
@@ -65,23 +65,45 @@ $roleConfig = [
     ]
 ];
 
-$config = $roleConfig[$role] ?? $roleConfig['alumno'];
+$config = isset($roleConfig[$role]) ? $roleConfig[$role] : $roleConfig['alumno'];
 $error = '';
 
 // Procesar login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    global $DEMO_USERS;
+    $DEMO_USERS = $GLOBALS['DEMO_USERS'];
 
-    $identifier = trim($_POST['identifier'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $identifier = isset($_POST['identifier']) ? trim($_POST['identifier']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
 
     // Login demo universal
     if (strtolower($identifier) === 'tubi' && $password === 'tubi2026') {
-        $_SESSION['user'] = $DEMO_USERS[$role];
+        $demoUser = isset($DEMO_USERS[$role]) ? $DEMO_USERS[$role] : $DEMO_USERS['alumno'];
+        // Buscar ID real en BD
+        $dbUser = dbFetchOne('SELECT id FROM usuarios WHERE role = ?', array($role));
+        if ($dbUser) {
+            $demoUser['id'] = $dbUser['id'];
+        }
+        $_SESSION['user'] = $demoUser;
         redirect('pages/' . $role . '/dashboard.php');
     }
 
-    // Buscar por email
+    // Buscar en base de datos
+    $dbUser = dbFetchOne('SELECT * FROM usuarios WHERE email = ? AND password = ?', array($identifier, $password));
+
+    if ($dbUser) {
+        $_SESSION['user'] = array(
+            'id' => $dbUser['id'],
+            'email' => $dbUser['email'],
+            'nombre' => $dbUser['nombre'],
+            'dni' => $dbUser['dni'],
+            'cuit' => $dbUser['cuit'],
+            'cue' => $dbUser['cue'],
+            'role' => $dbUser['role']
+        );
+        redirect('pages/' . $dbUser['role'] . '/dashboard.php');
+    }
+
+    // Fallback: buscar en demo users
     $foundUser = null;
     foreach ($DEMO_USERS as $user) {
         if ($user['email'] === $identifier && $user['password'] === $password) {
@@ -258,42 +280,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
             display: flex;
             align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            transition: border-color var(--transition);
         }
 
-        .input-group svg {
+        .input-group:focus-within {
+            border-color: <?= $config['color'] ?>;
+        }
+
+        .input-group > svg {
             position: absolute;
             left: 1rem;
             width: 20px;
             height: 20px;
             color: var(--text-muted);
             pointer-events: none;
+            flex-shrink: 0;
         }
 
         .input-group input {
             width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
+            padding: 0.875rem 3rem 0.875rem 3rem;
+            background: transparent;
+            border: none;
             font-size: 1rem;
             color: var(--text-primary);
             font-family: 'Ubuntu', sans-serif;
-            transition: border-color var(--transition);
         }
 
         .input-group input:focus {
             outline: none;
-            border-color: <?= $config['color'] ?>;
         }
 
         .toggle-password {
             position: absolute;
             right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
             padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
         }
 
         .toggle-password:hover {
@@ -446,7 +486,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </svg>
                             <input type="text" name="identifier" required
                                    placeholder="<?= e($config['placeholder']) ?>"
-                                   value="<?= e($_POST['identifier'] ?? '') ?>"
+                                   value="<?= e(isset($_POST['identifier']) ? $_POST['identifier'] : '') ?>"
                                    autocomplete="username">
                         </div>
                     </div>
@@ -491,27 +531,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
     function togglePassword() {
-        const input = document.getElementById('password');
+        var input = document.getElementById('password');
         input.type = input.type === 'password' ? 'text' : 'password';
     }
 
     // Sistema de tema
-    const themeToggle = document.getElementById('themeToggle');
-    const html = document.documentElement;
-    const savedTheme = localStorage.getItem('tubi-theme') || 'dark';
-    if (savedTheme === 'light') {
-        html.setAttribute('data-theme', 'light');
+    var themeToggle = document.getElementById('themeToggle');
+    var savedTheme = localStorage.getItem('tubi-theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
     }
 
-    themeToggle.addEventListener('click', () => {
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        if (newTheme === 'light') {
-            html.setAttribute('data-theme', 'light');
+    themeToggle.addEventListener('click', function() {
+        var isDark = document.body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('tubi-theme', 'light');
         } else {
-            html.removeAttribute('data-theme');
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('tubi-theme', 'dark');
         }
-        localStorage.setItem('tubi-theme', newTheme);
     });
     </script>
 </body>

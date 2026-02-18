@@ -1,488 +1,372 @@
 <?php
 /**
- * TUBI 2026 - Sistema de Datos Demo
- * Simula una base de datos para la demo
+ * TUBI 2026 - Sistema de Datos con MySQL
+ * Compatible con PHP 5.4+ y MySQL 5.0+
+ * Reemplaza el sistema anterior basado en $_SESSION
  */
 
-// Inicializar datos en sesión si no existen
+// ============================================
+// FUNCIONES DE ACCESO A DATOS
+// ============================================
+
+/**
+ * Compatibilidad: initDemoData devuelve datos de la BD
+ * Mantiene la misma interfaz que el sistema anterior
+ */
 function initDemoData() {
-    if (!isset($_SESSION['tubi_data'])) {
-        $_SESSION['tubi_data'] = [
-            'bicicletas' => generateBicicletas(),
-            'alumnos' => generateAlumnos(),
-            'escuelas' => generateEscuelas(),
-            'proveedores' => generateProveedores(),
-            'ordenes' => generateOrdenes(),
-            'modulos' => generateModulos(),
-            'logros' => generateLogros(),
-        ];
+    return array(
+        'bicicletas' => dbFetchAll('SELECT * FROM bicicletas ORDER BY id'),
+        'alumnos' => dbFetchAll('SELECT * FROM alumnos ORDER BY id'),
+        'escuelas' => dbFetchAll('SELECT * FROM escuelas ORDER BY id'),
+        'proveedores' => dbFetchAll('SELECT * FROM proveedores ORDER BY id'),
+        'ordenes' => dbFetchAll('SELECT * FROM ordenes ORDER BY id'),
+        'modulos' => dbFetchAll('SELECT * FROM modulos ORDER BY id'),
+        'logros' => dbFetchAll('SELECT * FROM logros ORDER BY id'),
+    );
+}
+
+/**
+ * Obtener datos por clave
+ */
+function getData($key) {
+    $tables = array(
+        'bicicletas' => 'SELECT * FROM bicicletas ORDER BY id',
+        'alumnos' => 'SELECT * FROM alumnos ORDER BY id',
+        'escuelas' => 'SELECT * FROM escuelas ORDER BY id',
+        'proveedores' => 'SELECT * FROM proveedores ORDER BY id',
+        'ordenes' => 'SELECT * FROM ordenes ORDER BY id',
+        'modulos' => 'SELECT * FROM modulos ORDER BY id',
+        'logros' => 'SELECT * FROM logros ORDER BY id',
+    );
+
+    if ($key && isset($tables[$key])) {
+        return dbFetchAll($tables[$key]);
     }
-    return $_SESSION['tubi_data'];
+    return array();
 }
 
-// Generar bicicletas demo
-function generateBicicletas() {
-    $estados = ['deposito', 'armada', 'en_escuela', 'entregada'];
-    $bicicletas = [];
+// ============================================
+// BICICLETAS
+// ============================================
 
-    for ($i = 1; $i <= 100; $i++) {
-        $estado = $estados[array_rand($estados)];
-        $bicicletas[] = [
-            'id' => $i,
-            'codigo' => 'TUBI-2026-' . str_pad($i, 5, '0', STR_PAD_LEFT),
-            'serie' => 'SN-' . strtoupper(substr(md5($i), 0, 8)),
-            'rodado' => rand(24, 26),
-            'color' => ['Azul', 'Verde', 'Rojo', 'Negro'][array_rand(['Azul', 'Verde', 'Rojo', 'Negro'])],
-            'estado' => $estado,
-            'alumno_id' => $estado === 'entregada' ? rand(1, 50) : null,
-            'escuela_id' => in_array($estado, ['en_escuela', 'entregada']) ? rand(1, 10) : null,
-            'proveedor_id' => rand(1, 3),
-            'fecha_armado' => $estado !== 'deposito' ? date('Y-m-d', strtotime('-' . rand(1, 60) . ' days')) : null,
-            'fecha_entrega' => $estado === 'entregada' ? date('Y-m-d', strtotime('-' . rand(1, 30) . ' days')) : null,
-        ];
-    }
-    return $bicicletas;
-}
-
-// Generar alumnos demo
-function generateAlumnos() {
-    $nombres = ['Juan', 'María', 'Carlos', 'Ana', 'Pedro', 'Laura', 'Diego', 'Sofía', 'Lucas', 'Valentina'];
-    $apellidos = ['Pérez', 'García', 'López', 'Martínez', 'González', 'Rodríguez', 'Fernández', 'Sánchez', 'Ramírez', 'Torres'];
-    $estados = ['preinscripto', 'en_revision', 'aprobado', 'asignado', 'entregado'];
-    $alumnos = [];
-
-    for ($i = 1; $i <= 50; $i++) {
-        $estado = $estados[array_rand($estados)];
-        $alumnos[] = [
-            'id' => $i,
-            'nombre' => $nombres[array_rand($nombres)] . ' ' . $apellidos[array_rand($apellidos)],
-            'dni' => '4' . rand(0, 9) . rand(100000, 999999),
-            'email' => 'alumno' . $i . '@email.com',
-            'escuela_id' => rand(1, 10),
-            'curso' => rand(1, 6) . '° ' . ['A', 'B', 'C'][array_rand(['A', 'B', 'C'])],
-            'estado' => $estado,
-            'puntos' => rand(0, 500),
-            'modulos_completados' => rand(0, 8),
-            'fecha_registro' => date('Y-m-d', strtotime('-' . rand(1, 90) . ' days')),
-        ];
-    }
-    return $alumnos;
-}
-
-// Generar escuelas demo
-function generateEscuelas() {
-    $escuelas = [
-        ['id' => 1, 'nombre' => 'Escuela N° 123 "Gral. San Martín"', 'cue' => '740001234', 'localidad' => 'Ciudad de San Luis', 'total_alumnos' => 450, 'bicicletas_asignadas' => 35],
-        ['id' => 2, 'nombre' => 'Escuela N° 45 "Juan B. Alberdi"', 'cue' => '740001245', 'localidad' => 'Villa Mercedes', 'total_alumnos' => 380, 'bicicletas_asignadas' => 28],
-        ['id' => 3, 'nombre' => 'Escuela N° 78 "Domingo F. Sarmiento"', 'cue' => '740001278', 'localidad' => 'Merlo', 'total_alumnos' => 290, 'bicicletas_asignadas' => 22],
-        ['id' => 4, 'nombre' => 'Instituto San Martín', 'cue' => '740001290', 'localidad' => 'Juana Koslay', 'total_alumnos' => 520, 'bicicletas_asignadas' => 40],
-        ['id' => 5, 'nombre' => 'Escuela N° 156 "Eva Perón"', 'cue' => '740001356', 'localidad' => 'La Punta', 'total_alumnos' => 310, 'bicicletas_asignadas' => 25],
-        ['id' => 6, 'nombre' => 'Colegio Provincial N° 12', 'cue' => '740001412', 'localidad' => 'Potrero de los Funes', 'total_alumnos' => 180, 'bicicletas_asignadas' => 15],
-        ['id' => 7, 'nombre' => 'Escuela Técnica N° 8', 'cue' => '740001508', 'localidad' => 'San Luis', 'total_alumnos' => 420, 'bicicletas_asignadas' => 32],
-        ['id' => 8, 'nombre' => 'Escuela N° 234 "Manuel Belgrano"', 'cue' => '740001634', 'localidad' => 'Tilisarao', 'total_alumnos' => 250, 'bicicletas_asignadas' => 20],
-        ['id' => 9, 'nombre' => 'Instituto Santa Rosa', 'cue' => '740001745', 'localidad' => 'Santa Rosa del Conlara', 'total_alumnos' => 340, 'bicicletas_asignadas' => 26],
-        ['id' => 10, 'nombre' => 'Escuela N° 567 "Arturo Illia"', 'cue' => '740001867', 'localidad' => 'Quines', 'total_alumnos' => 200, 'bicicletas_asignadas' => 18],
-    ];
-    return $escuelas;
-}
-
-// Generar proveedores demo
-function generateProveedores() {
-    return [
-        ['id' => 1, 'nombre' => 'Logística San Luis S.A.', 'cuit' => '30-12345678-9', 'localidad' => 'Villa Mercedes', 'estado' => 'activo', 'bicicletas_armadas' => 450],
-        ['id' => 2, 'nombre' => 'Bicicletas del Sur SRL', 'cuit' => '30-98765432-1', 'localidad' => 'San Luis', 'estado' => 'activo', 'bicicletas_armadas' => 380],
-        ['id' => 3, 'nombre' => 'Transporte Puntano', 'cuit' => '30-55667788-5', 'localidad' => 'Merlo', 'estado' => 'activo', 'bicicletas_armadas' => 290],
-    ];
-}
-
-// Generar órdenes demo
-function generateOrdenes() {
-    $estados = ['pendiente', 'en_proceso', 'completada', 'entregada'];
-    $ordenes = [];
-
-    for ($i = 1; $i <= 20; $i++) {
-        $ordenes[] = [
-            'id' => $i,
-            'codigo' => 'ORD-2026-' . str_pad($i, 3, '0', STR_PAD_LEFT),
-            'escuela_id' => rand(1, 10),
-            'proveedor_id' => rand(1, 3),
-            'cantidad' => rand(5, 30),
-            'estado' => $estados[array_rand($estados)],
-            'fecha_creacion' => date('Y-m-d', strtotime('-' . rand(1, 60) . ' days')),
-            'fecha_entrega' => rand(0, 1) ? date('Y-m-d', strtotime('+' . rand(1, 30) . ' days')) : null,
-        ];
-    }
-    return $ordenes;
-}
-
-// Generar módulos de aprendizaje
-function generateModulos() {
-    return [
-        ['id' => 1, 'titulo' => 'Conociendo tu TuBi', 'descripcion' => 'Aprende las partes de tu bicicleta', 'puntos' => 50, 'duracion' => '15 min', 'icono' => '🚲'],
-        ['id' => 2, 'titulo' => 'Seguridad Vial Básica', 'descripcion' => 'Normas de tránsito para ciclistas', 'puntos' => 75, 'duracion' => '20 min', 'icono' => '🛡️'],
-        ['id' => 3, 'titulo' => 'Mantenimiento Básico', 'descripcion' => 'Cómo cuidar tu bicicleta', 'puntos' => 100, 'duracion' => '25 min', 'icono' => '🔧'],
-        ['id' => 4, 'titulo' => 'Circulación Urbana', 'descripcion' => 'Circular seguro en la ciudad', 'puntos' => 75, 'duracion' => '20 min', 'icono' => '🏙️'],
-        ['id' => 5, 'titulo' => 'Primeros Auxilios', 'descripcion' => 'Qué hacer ante un accidente', 'puntos' => 100, 'duracion' => '30 min', 'icono' => '🏥'],
-        ['id' => 6, 'titulo' => 'Seguridad Nocturna', 'descripcion' => 'Circular de noche con seguridad', 'puntos' => 75, 'duracion' => '15 min', 'icono' => '🌙'],
-        ['id' => 7, 'titulo' => 'Mecánica Avanzada', 'descripcion' => 'Reparaciones que podés hacer', 'puntos' => 150, 'duracion' => '35 min', 'icono' => '⚙️'],
-        ['id' => 8, 'titulo' => 'Ciclismo Responsable', 'descripcion' => 'Ser un ciclista ejemplar', 'puntos' => 100, 'duracion' => '20 min', 'icono' => '🏆'],
-    ];
-}
-
-// Generar logros
-function generateLogros() {
-    return [
-        ['id' => 1, 'titulo' => 'Primera Vuelta', 'descripcion' => 'Completaste tu primer módulo', 'icono' => '🎯', 'puntos' => 25],
-        ['id' => 2, 'titulo' => 'Experto Vial', 'descripcion' => 'Aprobaste educación vial', 'icono' => '🛡️', 'puntos' => 50],
-        ['id' => 3, 'titulo' => 'Mecánico Básico', 'descripcion' => 'Aprendiste mantenimiento básico', 'icono' => '🔧', 'puntos' => 50],
-        ['id' => 4, 'titulo' => 'Ciclista Nocturno', 'descripcion' => 'Dominás la seguridad nocturna', 'icono' => '🌙', 'puntos' => 50],
-        ['id' => 5, 'titulo' => 'Campeón TuBi', 'descripcion' => 'Completaste todos los módulos', 'icono' => '🏆', 'puntos' => 200],
-        ['id' => 6, 'titulo' => 'Ayudante', 'descripcion' => 'Ayudaste a un compañero', 'icono' => '🤝', 'puntos' => 30],
-    ];
-}
-
-// Funciones de acceso a datos
-function getData($key = null) {
-    $data = initDemoData();
-    return $key ? ($data[$key] ?? []) : $data;
-}
-
-function getBicicletas($filtros = []) {
-    $bicicletas = getData('bicicletas');
+function getBicicletas($filtros = array()) {
+    $where = '1=1';
+    $params = array();
 
     if (!empty($filtros['estado'])) {
-        $bicicletas = array_filter($bicicletas, fn($b) => $b['estado'] === $filtros['estado']);
+        $where .= ' AND estado = ?';
+        $params[] = $filtros['estado'];
     }
     if (!empty($filtros['escuela_id'])) {
-        $bicicletas = array_filter($bicicletas, fn($b) => $b['escuela_id'] == $filtros['escuela_id']);
+        $where .= ' AND escuela_id = ?';
+        $params[] = (int)$filtros['escuela_id'];
     }
     if (!empty($filtros['proveedor_id'])) {
-        $bicicletas = array_filter($bicicletas, fn($b) => $b['proveedor_id'] == $filtros['proveedor_id']);
+        $where .= ' AND proveedor_id = ?';
+        $params[] = (int)$filtros['proveedor_id'];
     }
 
-    return array_values($bicicletas);
+    return dbFetchAll('SELECT * FROM bicicletas WHERE ' . $where . ' ORDER BY id', count($params) > 0 ? $params : null);
 }
 
 function getBicicleta($id) {
-    $bicicletas = getData('bicicletas');
-    foreach ($bicicletas as $b) {
-        if ($b['id'] == $id) return $b;
-    }
-    return null;
+    return dbFetchOne('SELECT * FROM bicicletas WHERE id = ?', array((int)$id));
 }
 
-function getAlumnos($filtros = []) {
-    $alumnos = getData('alumnos');
+function updateBicicleta($id, $datos) {
+    return dbUpdate('bicicletas', $datos, 'id = ?', array((int)$id));
+}
+
+function addBicicleta($datos) {
+    return dbInsert('bicicletas', $datos);
+}
+
+function cambiarEstadoBicicleta($id, $nuevoEstado, $escuelaId = null) {
+    $datos = array('estado' => $nuevoEstado);
+
+    if ($escuelaId) {
+        $datos['escuela_id'] = (int)$escuelaId;
+    }
+    if ($nuevoEstado === 'armada') {
+        $datos['fecha_armado'] = date('Y-m-d H:i:s');
+    }
+    if ($nuevoEstado === 'entregada') {
+        $datos['fecha_entrega'] = date('Y-m-d H:i:s');
+    }
+
+    return dbUpdate('bicicletas', $datos, 'id = ?', array((int)$id));
+}
+
+// ============================================
+// ALUMNOS
+// ============================================
+
+function getAlumnos($filtros = array()) {
+    $where = '1=1';
+    $params = array();
 
     if (!empty($filtros['escuela_id'])) {
-        $alumnos = array_filter($alumnos, fn($a) => $a['escuela_id'] == $filtros['escuela_id']);
+        $where .= ' AND escuela_id = ?';
+        $params[] = (int)$filtros['escuela_id'];
     }
     if (!empty($filtros['estado'])) {
-        $alumnos = array_filter($alumnos, fn($a) => $a['estado'] === $filtros['estado']);
+        $where .= ' AND estado = ?';
+        $params[] = $filtros['estado'];
     }
 
-    return array_values($alumnos);
+    return dbFetchAll('SELECT * FROM alumnos WHERE ' . $where . ' ORDER BY id', count($params) > 0 ? $params : null);
 }
 
 function getAlumno($id) {
-    $alumnos = getData('alumnos');
-    foreach ($alumnos as $a) {
-        if ($a['id'] == $id) return $a;
-    }
-    return null;
+    return dbFetchOne('SELECT * FROM alumnos WHERE id = ?', array((int)$id));
 }
 
-function getEscuelas() {
-    return getData('escuelas');
-}
-
-function getEscuela($id) {
-    $escuelas = getData('escuelas');
-    foreach ($escuelas as $e) {
-        if ($e['id'] == $id) return $e;
-    }
-    return null;
-}
-
-function getProveedores() {
-    return getData('proveedores');
-}
-
-function getProveedor($id) {
-    $proveedores = getData('proveedores');
-    foreach ($proveedores as $p) {
-        if ($p['id'] == $id) return $p;
-    }
-    return null;
-}
-
-function getOrdenes($filtros = []) {
-    $ordenes = getData('ordenes');
-
-    if (!empty($filtros['proveedor_id'])) {
-        $ordenes = array_filter($ordenes, fn($o) => $o['proveedor_id'] == $filtros['proveedor_id']);
-    }
-    if (!empty($filtros['escuela_id'])) {
-        $ordenes = array_filter($ordenes, fn($o) => $o['escuela_id'] == $filtros['escuela_id']);
-    }
-    if (!empty($filtros['estado'])) {
-        $ordenes = array_filter($ordenes, fn($o) => $o['estado'] === $filtros['estado']);
-    }
-
-    return array_values($ordenes);
-}
-
-function getModulos() {
-    return getData('modulos');
-}
-
-function getLogros() {
-    return getData('logros');
-}
-
-// Estadísticas generales
-function getEstadisticas() {
-    $bicicletas = getData('bicicletas');
-    $alumnos = getData('alumnos');
-    $escuelas = getData('escuelas');
-
-    return [
-        'total_bicicletas' => count($bicicletas),
-        'bicicletas_entregadas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'entregada')),
-        'bicicletas_en_escuela' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'en_escuela')),
-        'bicicletas_armadas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'armada')),
-        'bicicletas_deposito' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'deposito')),
-        'total_alumnos' => count($alumnos),
-        'alumnos_con_bici' => count(array_filter($alumnos, fn($a) => $a['estado'] === 'entregado')),
-        'total_escuelas' => count($escuelas),
-    ];
-}
-
-// Actualizar datos (simula UPDATE en BD)
-function updateBicicleta($id, $datos) {
-    $data = &$_SESSION['tubi_data'];
-    foreach ($data['bicicletas'] as &$b) {
-        if ($b['id'] == $id) {
-            $b = array_merge($b, $datos);
-            return true;
-        }
-    }
-    return false;
+function getAlumnoByUsuario($usuarioId) {
+    return dbFetchOne('SELECT * FROM alumnos WHERE usuario_id = ?', array((int)$usuarioId));
 }
 
 function updateAlumno($id, $datos) {
-    $data = &$_SESSION['tubi_data'];
-    foreach ($data['alumnos'] as &$a) {
-        if ($a['id'] == $id) {
-            $a = array_merge($a, $datos);
-            return true;
-        }
-    }
-    return false;
-}
-
-// Agregar nuevos registros
-function addBicicleta($datos) {
-    $data = &$_SESSION['tubi_data'];
-    $id = max(array_column($data['bicicletas'], 'id')) + 1;
-    $datos['id'] = $id;
-    $datos['codigo'] = 'TUBI-2026-' . str_pad($id, 5, '0', STR_PAD_LEFT);
-    $data['bicicletas'][] = $datos;
-    return $id;
+    return dbUpdate('alumnos', $datos, 'id = ?', array((int)$id));
 }
 
 function addAlumno($datos) {
-    $data = &$_SESSION['tubi_data'];
-    $id = max(array_column($data['alumnos'], 'id')) + 1;
-    $datos['id'] = $id;
     $datos['fecha_registro'] = date('Y-m-d');
-    $data['alumnos'][] = $datos;
-    return $id;
+    return dbInsert('alumnos', $datos);
 }
 
-// Estadísticas para Proveedor
+// ============================================
+// ESCUELAS
+// ============================================
+
+function getEscuelas() {
+    return dbFetchAll('SELECT * FROM escuelas ORDER BY id');
+}
+
+function getEscuela($id) {
+    return dbFetchOne('SELECT * FROM escuelas WHERE id = ?', array((int)$id));
+}
+
+// ============================================
+// PROVEEDORES
+// ============================================
+
+function getProveedores() {
+    return dbFetchAll('SELECT * FROM proveedores ORDER BY id');
+}
+
+function getProveedor($id) {
+    return dbFetchOne('SELECT * FROM proveedores WHERE id = ?', array((int)$id));
+}
+
+// ============================================
+// ORDENES
+// ============================================
+
+function getOrdenes($filtros = array()) {
+    $where = '1=1';
+    $params = array();
+
+    if (!empty($filtros['proveedor_id'])) {
+        $where .= ' AND proveedor_id = ?';
+        $params[] = (int)$filtros['proveedor_id'];
+    }
+    if (!empty($filtros['escuela_id'])) {
+        $where .= ' AND escuela_id = ?';
+        $params[] = (int)$filtros['escuela_id'];
+    }
+    if (!empty($filtros['estado'])) {
+        $where .= ' AND estado = ?';
+        $params[] = $filtros['estado'];
+    }
+
+    return dbFetchAll('SELECT * FROM ordenes WHERE ' . $where . ' ORDER BY id', count($params) > 0 ? $params : null);
+}
+
+// ============================================
+// MODULOS Y LOGROS
+// ============================================
+
+function getModulos() {
+    return dbFetchAll('SELECT * FROM modulos ORDER BY id');
+}
+
+function getLogros() {
+    return dbFetchAll('SELECT * FROM logros ORDER BY id');
+}
+
+// ============================================
+// RETOS COMPLETADOS
+// ============================================
+
+function getRetosCompletados($alumnoId, $fecha = null) {
+    if ($fecha === null) {
+        $fecha = date('Y-m-d');
+    }
+    return dbFetchAll(
+        'SELECT * FROM retos_completados WHERE alumno_id = ? AND fecha = ?',
+        array((int)$alumnoId, $fecha)
+    );
+}
+
+function retoCompletadoHoy($alumnoId, $tipo) {
+    $row = dbFetchOne(
+        'SELECT id FROM retos_completados WHERE alumno_id = ? AND tipo = ? AND fecha = ?',
+        array((int)$alumnoId, $tipo, date('Y-m-d'))
+    );
+    return $row ? true : false;
+}
+
+function registrarReto($alumnoId, $tipo, $puntos, $datos = '') {
+    return dbInsert('retos_completados', array(
+        'alumno_id' => (int)$alumnoId,
+        'tipo' => $tipo,
+        'fecha' => date('Y-m-d'),
+        'puntos_ganados' => (int)$puntos,
+        'datos' => $datos
+    ));
+}
+
+// ============================================
+// ESTADISTICAS
+// ============================================
+
+function getEstadisticas() {
+    return array(
+        'total_bicicletas' => dbCount('bicicletas'),
+        'bicicletas_entregadas' => dbCount('bicicletas', 'estado = ?', array('entregada')),
+        'bicicletas_en_escuela' => dbCount('bicicletas', 'estado = ?', array('en_escuela')),
+        'bicicletas_armadas' => dbCount('bicicletas', 'estado = ?', array('armada')),
+        'bicicletas_deposito' => dbCount('bicicletas', 'estado = ?', array('deposito')),
+        'total_alumnos' => dbCount('alumnos'),
+        'alumnos_con_bici' => dbCount('alumnos', 'estado = ?', array('entregado')),
+        'total_escuelas' => dbCount('escuelas'),
+    );
+}
+
 function getEstadisticasProveedor($proveedorId = null) {
-    $bicicletas = getData('bicicletas');
+    $where = $proveedorId ? 'proveedor_id = ?' : '1=1';
+    $params = $proveedorId ? array((int)$proveedorId) : null;
+
+    $total = dbCount('bicicletas', $where, $params);
+
+    $wDeposito = $proveedorId ? 'proveedor_id = ? AND estado = ?' : 'estado = ?';
+    $wArmada = $wDeposito;
+    $wSuministrada = $wDeposito;
+    $wEntregada = $wDeposito;
 
     if ($proveedorId) {
-        $bicicletas = array_filter($bicicletas, fn($b) => $b['proveedor_id'] == $proveedorId);
+        $pDeposito = array((int)$proveedorId, 'deposito');
+        $pArmada = array((int)$proveedorId, 'armada');
+        $pSuministrada = array((int)$proveedorId, 'en_escuela');
+        $pEntregada = array((int)$proveedorId, 'entregada');
+    } else {
+        $pDeposito = array('deposito');
+        $pArmada = array('armada');
+        $pSuministrada = array('en_escuela');
+        $pEntregada = array('entregada');
     }
 
-    return [
-        'en_deposito' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'deposito')),
-        'armadas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'armada')),
-        'suministradas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'en_escuela')),
-        'en_escuelas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'entregada')),
-        'total' => count($bicicletas),
-        'armadas_hoy' => rand(1, 5),
-        'esta_semana' => rand(5, 15),
-        'promedio_dia' => rand(3, 8),
-        'pendientes' => rand(1, 10),
-    ];
+    $enDeposito = dbCount('bicicletas', $wDeposito, $pDeposito);
+    $armadas = dbCount('bicicletas', $wArmada, $pArmada);
+    $suministradas = dbCount('bicicletas', $wSuministrada, $pSuministrada);
+    $entregadas = dbCount('bicicletas', $wEntregada, $pEntregada);
+
+    return array(
+        'en_deposito' => $enDeposito,
+        'armadas' => $armadas,
+        'suministradas' => $suministradas,
+        'en_escuelas' => $entregadas,
+        'total' => $total,
+        'armadas_hoy' => 0,
+        'esta_semana' => $armadas,
+        'promedio_dia' => max(1, intval(($total - $enDeposito) / max(1, 30))),
+        'pendientes' => $enDeposito,
+    );
 }
 
-// Cambiar estado de bicicleta (flujo de trabajo)
-function cambiarEstadoBicicleta($id, $nuevoEstado, $escuelaId = null) {
-    $data = &$_SESSION['tubi_data'];
-    foreach ($data['bicicletas'] as &$b) {
-        if ($b['id'] == $id) {
-            $b['estado'] = $nuevoEstado;
-            if ($escuelaId) {
-                $b['escuela_id'] = $escuelaId;
-            }
-            if ($nuevoEstado === 'armada') {
-                $b['fecha_armado'] = date('Y-m-d H:i:s');
-            }
-            if ($nuevoEstado === 'entregada') {
-                $b['fecha_entrega'] = date('Y-m-d H:i:s');
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-// Estadísticas para Escuela
 function getEstadisticasEscuela($escuelaId) {
-    $bicicletas = getData('bicicletas');
-    $bicicletasEscuela = array_filter($bicicletas, fn($b) => $b['escuela_id'] == $escuelaId);
+    $totalBicis = dbCount('bicicletas', 'escuela_id = ?', array((int)$escuelaId));
+    $entregadas = dbCount('bicicletas', 'escuela_id = ? AND estado = ?', array((int)$escuelaId, 'entregada'));
+    $totalAlumnos = dbCount('alumnos', 'escuela_id = ?', array((int)$escuelaId));
 
-    $alumnos = getData('alumnos');
-    $alumnosEscuela = array_filter($alumnos, fn($a) => $a['escuela_id'] == $escuelaId);
-
-    return [
-        'total_bicicletas' => count($bicicletasEscuela),
-        'entregadas' => count(array_filter($bicicletasEscuela, fn($b) => $b['estado'] === 'entregada')),
-        'pendientes' => count(array_filter($bicicletasEscuela, fn($b) => $b['estado'] !== 'entregada')),
-        'total_alumnos' => count($alumnosEscuela),
-    ];
+    return array(
+        'total_bicicletas' => $totalBicis,
+        'entregadas' => $entregadas,
+        'pendientes' => $totalBicis - $entregadas,
+        'total_alumnos' => $totalAlumnos,
+    );
 }
 
-// Estadísticas para Admin (tiempo real)
 function getEstadisticasAdmin() {
-    $bicicletas = getData('bicicletas');
-    $escuelas = getData('escuelas');
+    $total = dbCount('bicicletas');
+    $entregadas = dbCount('bicicletas', 'estado = ?', array('entregada'));
+    $enEscuelas = dbCount('bicicletas', 'estado = ?', array('en_escuela'));
+    $enDeposito = dbCount('bicicletas', 'estado = ?', array('deposito'));
+    $armadas = dbCount('bicicletas', 'estado = ?', array('armada'));
+    $totalEscuelas = dbCount('escuelas');
 
-    $stats = [
-        'total_bicicletas' => count($bicicletas),
-        'entregadas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'entregada')),
-        'en_escuelas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'en_escuela')),
-        'en_deposito' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'deposito')),
-        'armadas' => count(array_filter($bicicletas, fn($b) => $b['estado'] === 'armada')),
-        'total_escuelas' => count($escuelas),
-        'entregas_hoy' => rand(10, 30),
-        'entregas_semana' => rand(100, 200),
-        'entregas_mes' => rand(500, 800),
-        'tasa_entrega' => round((count(array_filter($bicicletas, fn($b) => $b['estado'] === 'entregada')) / count($bicicletas)) * 100, 1),
-    ];
-
-    return $stats;
+    return array(
+        'total_bicicletas' => $total,
+        'entregadas' => $entregadas,
+        'en_escuelas' => $enEscuelas,
+        'en_deposito' => $enDeposito,
+        'armadas' => $armadas,
+        'total_escuelas' => $totalEscuelas,
+        'entregas_hoy' => 0,
+        'entregas_semana' => $entregadas,
+        'entregas_mes' => $entregadas,
+        'tasa_entrega' => $total > 0 ? round(($entregadas / $total) * 100, 1) : 0,
+    );
 }
 
-// Obtener bicicletas para tabla de proveedor
+// ============================================
+// TABLAS CON JOIN (para dashboards)
+// ============================================
+
 function getBicicletasParaProveedor($limit = 10) {
-    $bicicletas = getData('bicicletas');
-    $escuelas = getData('escuelas');
-    $alumnos = getData('alumnos');
+    $sql = 'SELECT b.*, e.nombre AS escuela_nombre, a.nombre AS alumno_nombre, a.dni AS alumno_dni
+            FROM bicicletas b
+            LEFT JOIN escuelas e ON b.escuela_id = e.id
+            LEFT JOIN alumnos a ON b.alumno_id = a.id
+            ORDER BY b.id DESC
+            LIMIT ' . (int)$limit;
+    $rows = dbFetchAll($sql);
 
-    // Ordenar por ID descendente (más recientes primero)
-    usort($bicicletas, fn($a, $b) => $b['id'] - $a['id']);
-
-    // Tomar solo el límite
-    $bicicletas = array_slice($bicicletas, 0, $limit);
-
-    // Añadir info de escuela y alumno
-    foreach ($bicicletas as &$b) {
-        $b['escuela'] = null;
-        $b['alumno'] = null;
-
-        if ($b['escuela_id']) {
-            foreach ($escuelas as $e) {
-                if ($e['id'] == $b['escuela_id']) {
-                    $b['escuela'] = $e;
-                    break;
-                }
-            }
-        }
-
-        if ($b['alumno_id']) {
-            foreach ($alumnos as $a) {
-                if ($a['id'] == $b['alumno_id']) {
-                    $b['alumno'] = $a;
-                    break;
-                }
-            }
-        }
+    // Formatear para compatibilidad con templates existentes
+    foreach ($rows as $k => $b) {
+        $rows[$k]['escuela'] = $b['escuela_nombre'] ? array('nombre' => $b['escuela_nombre']) : null;
+        $rows[$k]['alumno'] = $b['alumno_nombre'] ? array('nombre' => $b['alumno_nombre'], 'dni' => isset($b['alumno_dni']) ? $b['alumno_dni'] : '') : null;
     }
-
-    return $bicicletas;
+    return $rows;
 }
 
-// Obtener bicicletas para tabla de escuela
 function getBicicletasParaEscuela($escuelaId, $limit = 10) {
-    $bicicletas = getData('bicicletas');
-    $alumnos = getData('alumnos');
+    $sql = 'SELECT b.*, a.nombre AS alumno_nombre, a.dni AS alumno_dni
+            FROM bicicletas b
+            LEFT JOIN alumnos a ON b.alumno_id = a.id
+            WHERE b.escuela_id = ?
+            ORDER BY b.id DESC
+            LIMIT ' . (int)$limit;
+    $rows = dbFetchAll($sql, array((int)$escuelaId));
 
-    // Filtrar por escuela
-    $bicicletas = array_filter($bicicletas, fn($b) => $b['escuela_id'] == $escuelaId);
-
-    // Ordenar por ID descendente
-    usort($bicicletas, fn($a, $b) => $b['id'] - $a['id']);
-
-    // Tomar solo el límite
-    $bicicletas = array_slice($bicicletas, 0, $limit);
-
-    // Añadir info de alumno
-    foreach ($bicicletas as &$b) {
-        $b['alumno'] = null;
-        if ($b['alumno_id']) {
-            foreach ($alumnos as $a) {
-                if ($a['id'] == $b['alumno_id']) {
-                    $b['alumno'] = $a;
-                    break;
-                }
-            }
-        }
+    foreach ($rows as $k => $b) {
+        $rows[$k]['alumno'] = $b['alumno_nombre'] ? array('nombre' => $b['alumno_nombre'], 'dni' => $b['alumno_dni']) : null;
     }
-
-    return array_values($bicicletas);
+    return $rows;
 }
 
-// Obtener bicicletas para tabla de admin
 function getBicicletasParaAdmin($limit = 10) {
-    $bicicletas = getData('bicicletas');
-    $escuelas = getData('escuelas');
-    $alumnos = getData('alumnos');
+    $sql = 'SELECT b.*, e.nombre AS escuela_nombre, a.nombre AS alumno_nombre
+            FROM bicicletas b
+            LEFT JOIN escuelas e ON b.escuela_id = e.id
+            LEFT JOIN alumnos a ON b.alumno_id = a.id
+            ORDER BY b.id DESC
+            LIMIT ' . (int)$limit;
+    $rows = dbFetchAll($sql);
 
-    // Ordenar por ID descendente
-    usort($bicicletas, fn($a, $b) => $b['id'] - $a['id']);
-
-    // Tomar solo el límite
-    $bicicletas = array_slice($bicicletas, 0, $limit);
-
-    // Añadir info
-    foreach ($bicicletas as &$b) {
-        $b['escuela'] = null;
-        $b['alumno'] = null;
-
-        if ($b['escuela_id']) {
-            foreach ($escuelas as $e) {
-                if ($e['id'] == $b['escuela_id']) {
-                    $b['escuela'] = $e;
-                    break;
-                }
-            }
-        }
-
-        if ($b['alumno_id']) {
-            foreach ($alumnos as $a) {
-                if ($a['id'] == $b['alumno_id']) {
-                    $b['alumno'] = $a;
-                    break;
-                }
-            }
-        }
+    foreach ($rows as $k => $b) {
+        $rows[$k]['escuela'] = $b['escuela_nombre'] ? array('nombre' => $b['escuela_nombre']) : null;
+        $rows[$k]['alumno'] = $b['alumno_nombre'] ? array('nombre' => $b['alumno_nombre']) : null;
     }
-
-    return $bicicletas;
+    return $rows;
 }

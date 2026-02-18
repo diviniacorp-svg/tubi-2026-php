@@ -10,17 +10,38 @@ if (!isLoggedIn() || !hasRole('admin')) {
 
 $pageTitle = 'Configuración';
 
-// Configuración de ejemplo
-$configItems = [
-    'general' => [
+// Configuración del programa
+$configItems = array(
+    'general' => array(
         'nombre_programa' => 'Tu Bicicleta San Luis',
-        'año_programa' => '2026',
+        'anio_programa' => '2026',
         'email_contacto' => 'tubi@sanluis.gob.ar'
-    ],
-    'api' => [
-        'gemini_status' => defined('GEMINI_API_KEY') && GEMINI_API_KEY !== 'TU_API_KEY_AQUI'
-    ]
-];
+    )
+);
+
+// Estadísticas reales de la BD
+$dbStats = array(
+    'usuarios' => dbCount('usuarios'),
+    'alumnos' => dbCount('alumnos'),
+    'bicicletas' => dbCount('bicicletas'),
+    'escuelas' => dbCount('escuelas'),
+    'proveedores' => dbCount('proveedores'),
+    'ordenes' => dbCount('ordenes'),
+    'modulos' => dbCount('modulos'),
+    'logros' => dbCount('logros')
+);
+
+// Verificar conexión BD
+$dbConectada = false;
+$dbVersion = '';
+try {
+    $conn = db();
+    $dbConectada = true;
+    $versionRow = dbFetchOne('SELECT VERSION() as v');
+    $dbVersion = $versionRow ? $versionRow['v'] : 'N/A';
+} catch (Exception $ex) {
+    $dbConectada = false;
+}
 
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -44,7 +65,7 @@ include __DIR__ . '/../../includes/header.php';
                     </div>
                     <div class="form-group">
                         <label>Año del Programa</label>
-                        <input type="text" class="form-input" value="<?= e($configItems['general']['año_programa']) ?>">
+                        <input type="text" class="form-input" value="<?= e($configItems['general']['anio_programa']) ?>">
                     </div>
                     <div class="form-group">
                         <label>Email de Contacto</label>
@@ -64,20 +85,6 @@ include __DIR__ . '/../../includes/header.php';
                 <div class="integration-status">
                     <div class="integration-item">
                         <div class="integration-info">
-                            <span class="integration-icon">🤖</span>
-                            <div>
-                                <strong>Google Gemini AI</strong>
-                                <p>Chat inteligente para usuarios</p>
-                            </div>
-                        </div>
-                        <?php if ($configItems['api']['gemini_status']): ?>
-                            <span class="badge badge-success">Conectado</span>
-                        <?php else: ?>
-                            <span class="badge badge-error">Sin Configurar</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="integration-item">
-                        <div class="integration-info">
                             <span class="integration-icon">📧</span>
                             <div>
                                 <strong>Servicio de Email</strong>
@@ -91,33 +98,34 @@ include __DIR__ . '/../../includes/header.php';
                             <span class="integration-icon">🗄️</span>
                             <div>
                                 <strong>Base de Datos</strong>
-                                <p>MySQL / MariaDB</p>
+                                <p>MySQL <?= e($dbVersion) ?> - <?= e(DB_NAME) ?></p>
                             </div>
                         </div>
-                        <span class="badge badge-warning">Demo Mode</span>
+                        <?php if ($dbConectada): ?>
+                        <span class="badge badge-success">Conectada</span>
+                        <?php else: ?>
+                        <span class="badge badge-danger">Desconectada</span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Configuración de API -->
+    <!-- Estadísticas de la Base de Datos -->
     <div class="card" style="margin-top: 2rem;">
         <div class="card-header">
-            <h3>🔑 Configuración de API</h3>
+            <h3>📊 Base de Datos (<?= e(DB_NAME) ?>)</h3>
         </div>
         <div class="card-body">
-            <div class="alert alert-info">
-                <strong>Nota:</strong> Las API keys se configuran en el archivo <code>config/config.php</code>
-            </div>
-            <form class="config-form">
-                <div class="form-group">
-                    <label>Google Gemini API Key</label>
-                    <input type="password" class="form-input" value="<?= $configItems['api']['gemini_status'] ? '••••••••••••••••' : '' ?>" placeholder="Ingrese su API key de Gemini">
-                    <small>Obtenga su API key en <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+            <div class="info-grid">
+                <?php foreach ($dbStats as $tabla => $total): ?>
+                <div class="info-item">
+                    <span class="label"><?= ucfirst(e($tabla)) ?>:</span>
+                    <span class="value"><?= $total ?> registros</span>
                 </div>
-                <button type="button" class="btn btn-primary">Actualizar API Key</button>
-            </form>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
 
@@ -137,12 +145,20 @@ include __DIR__ . '/../../includes/header.php';
                     <span class="value"><?= phpversion() ?></span>
                 </div>
                 <div class="info-item">
+                    <span class="label">MySQL Version:</span>
+                    <span class="value"><?= e($dbVersion) ?></span>
+                </div>
+                <div class="info-item">
                     <span class="label">Servidor:</span>
-                    <span class="value"><?= $_SERVER['SERVER_SOFTWARE'] ?? 'N/A' ?></span>
+                    <span class="value"><?= isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : 'N/A' ?></span>
                 </div>
                 <div class="info-item">
                     <span class="label">Zona Horaria:</span>
                     <span class="value"><?= date_default_timezone_get() ?></span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Base de Datos:</span>
+                    <span class="value"><?= e(DB_HOST) ?> / <?= e(DB_NAME) ?></span>
                 </div>
             </div>
         </div>

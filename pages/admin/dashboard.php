@@ -4,7 +4,6 @@
  * Centro de Control con visualización en tiempo real y gestión de IA
  */
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../config/data.php';
 
 if (!isLoggedIn() || !hasRole('admin')) {
     redirect('login.php?role=admin');
@@ -19,120 +18,130 @@ $bicicletas = getBicicletasParaAdmin(20);
 $escuelas = getEscuelas();
 $proveedores = getProveedores();
 
-// Progreso anual
+// Meta del programa: 7000 bicicletas
+$metaTotal = 7000;
+$progresoMeta = round(($stats['entregadas'] / max($metaTotal, 1)) * 100, 1);
+
+// Progreso anual (sobre las existentes)
 $progresoAnual = round(($stats['entregadas'] / max($stats['total_bicicletas'], 1)) * 100, 1);
 
+// Estadisticas cruzadas para resumen ejecutivo
+$totalAlumnos = dbCount('alumnos');
+$totalEscuelas = dbCount('escuelas');
+$totalProveedores = dbCount('proveedores');
+$totalOrdenes = dbCount('ordenes');
+$totalModulos = dbCount('modulos');
+$totalUsuarios = dbCount('usuarios');
+
+// Alumnos con bici entregada
+$alumnosConBici = dbFetchOne('SELECT COUNT(DISTINCT alumno_id) AS total FROM bicicletas WHERE estado = ? AND alumno_id > 0', array('entregada'));
+$alumnosConBiciTotal = $alumnosConBici ? (int)$alumnosConBici['total'] : 0;
+
+// Progreso educativo promedio
+$progresoEducativo = dbFetchOne('SELECT AVG(modulos_completados) AS promedio FROM alumnos');
+$promedioModulos = $progresoEducativo ? round((float)$progresoEducativo['promedio'], 1) : 0;
+$porcEducativo = $totalModulos > 0 ? round(($promedioModulos / $totalModulos) * 100) : 0;
+
+// Bicis por escuela (top 5)
+$bicisPorEscuela = dbFetchAll(
+    'SELECT e.nombre, COUNT(b.id) AS total_bicis, ' .
+    'SUM(CASE WHEN b.estado = \'entregada\' THEN 1 ELSE 0 END) AS entregadas ' .
+    'FROM escuelas e LEFT JOIN bicicletas b ON b.escuela_id = e.id ' .
+    'GROUP BY e.id, e.nombre ORDER BY total_bicis DESC LIMIT 5'
+);
+
 // Alertas recientes (simuladas)
-$alertas = [
-    ['mensaje' => $stats['armadas'] . ' bicicletas listas para suministrar', 'tiempo' => 'Hace 5 min', 'tipo' => 'info'],
-    ['mensaje' => $stats['en_escuelas'] . ' bicicletas en escuelas pendientes de entrega', 'tiempo' => 'Hace 15 min', 'tipo' => 'warning'],
-    ['mensaje' => 'Proveedor "Logística San Luis" activo', 'tiempo' => 'Hace 1 hora', 'tipo' => 'success'],
-];
+$alertas = array(
+    array('mensaje' => $stats['armadas'] . ' bicicletas listas para suministrar', 'tiempo' => 'Hace 5 min', 'tipo' => 'info'),
+    array('mensaje' => $stats['en_escuelas'] . ' bicicletas en escuelas pendientes de entrega', 'tiempo' => 'Hace 15 min', 'tipo' => 'warning'),
+    array('mensaje' => 'Proveedor "Logística San Luis" activo', 'tiempo' => 'Hace 1 hora', 'tipo' => 'success'),
+);
 
 // Distribución por estado
-$distribucion = [
-    ['label' => 'Entregadas', 'valor' => $stats['entregadas'], 'color' => '#22c55e', 'icono' => '✅'],
-    ['label' => 'En Escuelas', 'valor' => $stats['en_escuelas'], 'color' => '#f59e0b', 'icono' => '🏫'],
-    ['label' => 'Armadas', 'valor' => $stats['armadas'], 'color' => '#3b82f6', 'icono' => '🔧'],
-    ['label' => 'En Depósito', 'valor' => $stats['en_deposito'], 'color' => '#6b7280', 'icono' => '📦'],
-];
+$distribucion = array(
+    array('label' => 'Entregadas', 'valor' => $stats['entregadas'], 'color' => '#22c55e', 'icono' => '✅'),
+    array('label' => 'En Escuelas', 'valor' => $stats['en_escuelas'], 'color' => '#f59e0b', 'icono' => '🏫'),
+    array('label' => 'Armadas', 'valor' => $stats['armadas'], 'color' => '#3b82f6', 'icono' => '🔧'),
+    array('label' => 'En Depósito', 'valor' => $stats['en_deposito'], 'color' => '#6b7280', 'icono' => '📦'),
+);
 
 // Tab activa
-$tabActiva = $_GET['tab'] ?? 'dashboard';
+$tabActiva = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
 
-// Inicializar documentos de IA si no existen
-if (!isset($_SESSION['tubi_ia_docs'])) {
-    $_SESSION['tubi_ia_docs'] = [
-        [
-            'id' => 1,
-            'nombre' => 'Manual de Entregas TuBi 2026.pdf',
-            'tamaño' => '2.4 MB',
-            'fecha' => '2026-01-15',
-            'tipo' => 'manual',
-            'descripcion' => 'Procedimientos oficiales de entrega de bicicletas',
-            'estado' => 'procesado',
-        ],
-        [
-            'id' => 2,
-            'nombre' => 'FAQ Estudiantes y Tutores.pdf',
-            'tamaño' => '1.1 MB',
-            'fecha' => '2026-01-20',
-            'tipo' => 'faq',
-            'descripcion' => 'Preguntas frecuentes para usuarios del programa',
-            'estado' => 'procesado',
-        ],
-        [
-            'id' => 3,
-            'nombre' => 'Protocolo Escuelas.pdf',
-            'tamaño' => '890 KB',
-            'fecha' => '2026-01-25',
-            'tipo' => 'protocolo',
-            'descripcion' => 'Protocolo de recepción y entrega en escuelas',
-            'estado' => 'procesado',
-        ],
-    ];
-}
+// Procesar acciones de bicicletas (admin puede hacer todo)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($tabActiva, array('bicicletas', 'flujo', 'dashboard'))) {
+    $action = isset($_POST['action']) ? $_POST['action'] : '';
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $result = array('success' => false, 'message' => 'Acción no válida');
 
-// Procesar subida de documentos
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tabActiva === 'ia') {
-    $action = $_POST['action'] ?? '';
-
-    if ($action === 'upload_doc') {
-        $nombre = trim($_POST['doc_nombre'] ?? '');
-        $tipo = $_POST['doc_tipo'] ?? 'manual';
-        $descripcion = trim($_POST['doc_descripcion'] ?? '');
-
-        if ($nombre) {
-            $nuevoId = count($_SESSION['tubi_ia_docs']) + 1;
-            $_SESSION['tubi_ia_docs'][] = [
-                'id' => $nuevoId,
-                'nombre' => $nombre . '.pdf',
-                'tamaño' => rand(500, 3000) . ' KB',
-                'fecha' => date('Y-m-d'),
-                'tipo' => $tipo,
-                'descripcion' => $descripcion ?: 'Documento cargado por administrador',
-                'estado' => 'procesando',
-            ];
-            setFlash('success', 'Documento "' . $nombre . '.pdf" cargado exitosamente. Procesando para la IA...');
+    if ($action === 'armar') {
+        $biciId = (int)(isset($_POST['bici_id']) ? $_POST['bici_id'] : 0);
+        if ($biciId && cambiarEstadoBicicleta($biciId, 'armada')) {
+            $newStats = getEstadisticasAdmin();
+            $result = array('success' => true, 'message' => 'Bicicleta marcada como ARMADA', 'action' => 'armar', 'bici_id' => $biciId, 'stats' => $newStats);
+        } else {
+            $result = array('success' => false, 'message' => 'No se pudo armar la bicicleta');
         }
-        redirect('pages/admin/dashboard.php?tab=ia');
     }
 
-    if ($action === 'delete_doc') {
-        $docId = (int)($_POST['doc_id'] ?? 0);
-        foreach ($_SESSION['tubi_ia_docs'] as $key => $doc) {
-            if ($doc['id'] == $docId) {
-                $docNombre = $doc['nombre'];
-                unset($_SESSION['tubi_ia_docs'][$key]);
-                $_SESSION['tubi_ia_docs'] = array_values($_SESSION['tubi_ia_docs']);
-                setFlash('success', 'Documento "' . $docNombre . '" eliminado correctamente.');
-                break;
+    if ($action === 'suministrar') {
+        $biciId = (int)(isset($_POST['bici_id']) ? $_POST['bici_id'] : 0);
+        $escuelaId = (int)(isset($_POST['escuela_id']) ? $_POST['escuela_id'] : 0);
+        if ($biciId && $escuelaId && cambiarEstadoBicicleta($biciId, 'en_escuela', $escuelaId)) {
+            $escuelaNombre = '';
+            foreach ($escuelas as $esc) { if ($esc['id'] == $escuelaId) { $escuelaNombre = $esc['nombre']; break; } }
+            $newStats = getEstadisticasAdmin();
+            $result = array('success' => true, 'message' => "Bicicleta suministrada a $escuelaNombre", 'action' => 'suministrar', 'bici_id' => $biciId, 'escuela_nombre' => $escuelaNombre, 'stats' => $newStats);
+        } else {
+            $result = array('success' => false, 'message' => 'Seleccioná una escuela válida');
+        }
+    }
+
+    if ($action === 'entregar') {
+        $biciId = (int)(isset($_POST['bici_id']) ? $_POST['bici_id'] : 0);
+        $dni = sanitize(isset($_POST['dni']) ? $_POST['dni'] : '');
+        $nombre = sanitize(isset($_POST['nombre']) ? $_POST['nombre'] : '');
+        if ($biciId) {
+            // Buscar alumno por DNI
+            $alumno = dbFetchOne('SELECT id FROM alumnos WHERE dni = ?', array($dni));
+            $alumnoId = $alumno ? $alumno['id'] : null;
+            $datos = array('estado' => 'entregada', 'fecha_entrega' => date('Y-m-d H:i:s'));
+            if ($alumnoId) {
+                $datos['alumno_id'] = (int)$alumnoId;
+            }
+            if (dbUpdate('bicicletas', $datos, 'id = ?', array($biciId))) {
+                $newStats = getEstadisticasAdmin();
+                $result = array('success' => true, 'message' => "Bicicleta entregada a $nombre", 'action' => 'entregar', 'bici_id' => $biciId, 'alumno_nombre' => $nombre ? $nombre : 'Alumno', 'alumno_dni' => $dni, 'stats' => $newStats);
+            } else {
+                $result = array('success' => false, 'message' => 'No se pudo entregar la bicicleta');
             }
         }
-        redirect('pages/admin/dashboard.php?tab=ia');
     }
 
-    if ($action === 'reprocess_doc') {
-        $docId = (int)($_POST['doc_id'] ?? 0);
-        foreach ($_SESSION['tubi_ia_docs'] as &$doc) {
-            if ($doc['id'] == $docId) {
-                $doc['estado'] = 'procesando';
-                setFlash('info', 'Reprocesando documento "' . $doc['nombre'] . '"...');
-                break;
+    if ($action === 'reasignar') {
+        $biciId = (int)(isset($_POST['bici_id']) ? $_POST['bici_id'] : 0);
+        if ($biciId) {
+            $datos = array('estado' => 'en_escuela', 'alumno_id' => null, 'fecha_entrega' => null);
+            if (dbUpdate('bicicletas', $datos, 'id = ?', array($biciId))) {
+                $newStats = getEstadisticasAdmin();
+                $result = array('success' => true, 'message' => 'Bicicleta liberada para reasignacion', 'action' => 'reasignar', 'bici_id' => $biciId, 'stats' => $newStats);
+            } else {
+                $result = array('success' => false, 'message' => 'No se pudo reasignar');
             }
         }
-        redirect('pages/admin/dashboard.php?tab=ia');
     }
+
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit;
+    }
+
+    setFlash($result['success'] ? 'success' : 'error', $result['message']);
+    redirect('pages/admin/dashboard.php?tab=' . $tabActiva);
 }
 
-// Simular procesamiento de documentos
-foreach ($_SESSION['tubi_ia_docs'] as &$doc) {
-    if ($doc['estado'] === 'procesando' && rand(1, 3) === 1) {
-        $doc['estado'] = 'procesado';
-    }
-}
-
-$documentosIA = $_SESSION['tubi_ia_docs'];
 $flash = getFlash();
 ?>
 <!DOCTYPE html>
@@ -145,245 +154,19 @@ $flash = getFlash();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tubi-institucional.css">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
     <style>
-        /* Estilos para sección de IA */
-        .ia-header-card {
-            background: linear-gradient(135deg, #8b5cf620 0%, #6366f120 100%);
-            border: 1px solid #8b5cf640;
-            border-radius: var(--border-radius-xl);
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .ia-icon-wrap {
-            width: 56px;
-            height: 56px;
-            border-radius: var(--border-radius-lg);
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-
-        .ia-info {
-            flex: 1;
-        }
-
-        .ia-info strong {
-            display: block;
-            font-size: 1.125rem;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
-
-        .ia-info span {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .ia-stats {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .ia-stat {
-            text-align: center;
-        }
-
-        .ia-stat-value {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #8b5cf6;
-        }
-
-        .ia-stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Upload zone */
-        .upload-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: var(--border-radius-xl);
-            padding: 2rem;
-            text-align: center;
-            background: var(--bg-card-hover);
-            transition: all var(--transition);
-            cursor: pointer;
-        }
-
-        .upload-zone:hover {
-            border-color: #8b5cf6;
-            background: #8b5cf610;
-        }
-
-        .upload-zone.dragover {
-            border-color: #8b5cf6;
-            background: #8b5cf620;
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .upload-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-subtitle {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .upload-formats {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Document list */
-        .doc-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            transition: all var(--transition);
-        }
-
-        .doc-item:hover {
-            border-color: var(--border-color-hover);
-            background: var(--bg-card-hover);
-        }
-
-        .doc-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-
-        .doc-icon.manual { background: #ef444420; }
-        .doc-icon.faq { background: #3b82f620; }
-        .doc-icon.protocolo { background: #22c55e20; }
-        .doc-icon.otro { background: #6b728020; }
-
-        .doc-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .doc-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .doc-desc {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.375rem;
-        }
-
-        .doc-meta {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .doc-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-doc {
-            padding: 0.375rem 0.75rem;
-            border-radius: var(--border-radius);
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        /* Modal de carga */
-        .upload-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        @media (max-width: 480px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .ia-header-card {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .ia-stats {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .doc-item {
-                flex-wrap: wrap;
-            }
-
-            .doc-actions {
-                width: 100%;
-                margin-top: 0.5rem;
-            }
-        }
+        * { font-family: 'Ubuntu', -apple-system, sans-serif !important; }
     </style>
 </head>
 <body class="tubi-bg-pattern" data-base-url="<?= BASE_URL ?>">
+    <?php include __DIR__ . '/../../includes/zocalo-header.php'; ?>
+
     <div class="app-container wide">
         <!-- Header -->
         <header class="app-header">
             <div class="header-left">
-                <a href="<?= BASE_URL ?>" class="header-logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
-                        <circle cx="5.5" cy="17.5" r="3.5"/>
-                        <circle cx="18.5" cy="17.5" r="3.5"/>
-                        <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h3"/>
-                    </svg>
-                    <span>TuBi</span>
-                </a>
                 <span class="header-badge admin">Administración</span>
             </div>
             <div class="header-right">
@@ -457,12 +240,33 @@ $flash = getFlash();
                         <a href="?tab=flujo" class="tab-item <?= $tabActiva === 'flujo' ? 'active' : '' ?>">🔄 Flujo de Trabajo</a>
                         <a href="?tab=bicicletas" class="tab-item <?= $tabActiva === 'bicicletas' ? 'active' : '' ?>">🚲 Bicicletas</a>
                         <a href="?tab=escuelas" class="tab-item <?= $tabActiva === 'escuelas' ? 'active' : '' ?>">🏫 Escuelas</a>
-                        <a href="?tab=ia" class="tab-item <?= $tabActiva === 'ia' ? 'active' : '' ?>">🤖 Base IA</a>
                         <a href="?tab=reportes" class="tab-item <?= $tabActiva === 'reportes' ? 'active' : '' ?>">📋 Reportes</a>
                     </div>
                 </div>
 
                 <?php if ($tabActiva === 'dashboard'): ?>
+                <!-- Meta del Programa TuBi -->
+                <div class="card" style="background: linear-gradient(135deg, #354393 0%, #4aacc4 100%); color: white; border: none;">
+                    <div class="card-body" style="padding: 1.5rem 2rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 style="margin: 0 0 0.25rem 0; font-size: 1.2rem; font-weight: 700; color: white;">Meta del Programa TuBi 2026</h3>
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.85rem;"><?php echo number_format($stats['entregadas']); ?> de <?php echo number_format($metaTotal); ?> bicicletas entregadas a estudiantes</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 2rem; font-weight: 700;"><?php echo $progresoMeta; ?>%</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; background: rgba(255,255,255,0.2); border-radius: 10px; height: 16px; overflow: hidden;">
+                            <div style="background: #22c55e; height: 100%; border-radius: 10px; width: <?php echo $progresoMeta; ?>%; transition: width 0.5s ease; min-width: 2%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.85;">
+                            <span><?php echo number_format($totalAlumnos); ?> alumnos registrados</span>
+                            <span><?php echo number_format($totalEscuelas); ?> escuelas · <?php echo number_format($totalProveedores); ?> proveedores</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Métricas Principales -->
                 <div class="stats-grid-4">
                     <div class="stat-card highlight">
@@ -597,189 +401,12 @@ $flash = getFlash();
                                     <div class="qa-icon verde">🚲</div>
                                     <span>Gestión Bicis</span>
                                 </a>
-                                <a href="?tab=ia" class="quick-action-btn">
-                                    <div class="qa-icon morado">🤖</div>
-                                    <span>Base IA</span>
-                                </a>
                                 <a href="?tab=reportes" class="quick-action-btn">
                                     <div class="qa-icon naranja">📊</div>
                                     <span>Reportes</span>
                                 </a>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <?php elseif ($tabActiva === 'ia'): ?>
-                <!-- Sección de Base de Conocimiento IA -->
-
-                <!-- Header IA -->
-                <div class="ia-header-card">
-                    <div class="ia-icon-wrap">🤖</div>
-                    <div class="ia-info">
-                        <strong>Base de Conocimiento IA</strong>
-                        <span>Gestión de documentos para el asistente TuBi Chat</span>
-                    </div>
-                    <div class="ia-stats">
-                        <div class="ia-stat">
-                            <span class="ia-stat-value"><?= count($documentosIA) ?></span>
-                            <span class="ia-stat-label">Documentos</span>
-                        </div>
-                        <div class="ia-stat">
-                            <span class="ia-stat-value"><?= count(array_filter($documentosIA, fn($d) => $d['estado'] === 'procesado')) ?></span>
-                            <span class="ia-stat-label">Procesados</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid-2">
-                    <!-- Zona de carga -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Cargar Documento</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="upload-zone" onclick="document.getElementById('modalUpload').style.display='flex'" id="uploadZone">
-                                <div class="upload-icon">📄</div>
-                                <div class="upload-title">Arrastrá o hacé click para cargar</div>
-                                <div class="upload-subtitle">Subí documentos PDF para entrenar al asistente IA</div>
-                                <div class="upload-formats">Formatos: PDF · Máximo 10MB</div>
-                            </div>
-
-                            <div style="margin-top: 1.5rem;">
-                                <h4 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tipos de documentos recomendados:</h4>
-                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-primary);">
-                                        <span>📋</span> Manuales de procedimientos
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-primary);">
-                                        <span>❓</span> Preguntas frecuentes (FAQ)
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-primary);">
-                                        <span>📜</span> Protocolos de entrega
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-primary);">
-                                        <span>📖</span> Guías para usuarios
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Estado del sistema IA -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Estado del Sistema IA</h3>
-                            <span class="badge badge-success">● Activo</span>
-                        </div>
-                        <div class="card-body">
-                            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                <div class="distribution-item">
-                                    <div class="dist-header">
-                                        <span class="dist-label">
-                                            <span class="dist-dot" style="background:#22c55e"></span>
-                                            Chat Estudiantes
-                                        </span>
-                                        <span class="badge badge-success">Online</span>
-                                    </div>
-                                </div>
-                                <div class="distribution-item">
-                                    <div class="dist-header">
-                                        <span class="dist-label">
-                                            <span class="dist-dot" style="background:#22c55e"></span>
-                                            Chat Escuelas
-                                        </span>
-                                        <span class="badge badge-success">Online</span>
-                                    </div>
-                                </div>
-                                <div class="distribution-item">
-                                    <div class="dist-header">
-                                        <span class="dist-label">
-                                            <span class="dist-dot" style="background:#22c55e"></span>
-                                            Chat Proveedores
-                                        </span>
-                                        <span class="badge badge-success">Online</span>
-                                    </div>
-                                </div>
-                                <div class="distribution-item">
-                                    <div class="dist-header">
-                                        <span class="dist-label">
-                                            <span class="dist-dot" style="background:#3b82f6"></span>
-                                            Última actualización
-                                        </span>
-                                        <span style="font-size: 0.875rem; color: var(--text-secondary);"><?= date('d/m/Y H:i') ?></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                                <button class="btn btn-primary btn-block" onclick="sincronizarIA()">
-                                    🔄 Sincronizar Base de Conocimiento
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lista de documentos -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Documentos Cargados</h3>
-                        <span class="badge badge-info"><?= count($documentosIA) ?> documentos</span>
-                    </div>
-                    <div class="card-body">
-                        <?php if (empty($documentosIA)): ?>
-                        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
-                            <p>No hay documentos cargados todavía.</p>
-                            <p style="font-size: 0.875rem;">Cargá documentos PDF para entrenar al asistente IA.</p>
-                        </div>
-                        <?php else: ?>
-                        <div class="doc-list">
-                            <?php foreach ($documentosIA as $doc): ?>
-                            <div class="doc-item">
-                                <div class="doc-icon <?= $doc['tipo'] ?>">
-                                    <?php
-                                    $iconos = ['manual' => '📕', 'faq' => '❓', 'protocolo' => '📜', 'otro' => '📄'];
-                                    echo $iconos[$doc['tipo']] ?? '📄';
-                                    ?>
-                                </div>
-                                <div class="doc-content">
-                                    <div class="doc-name">
-                                        <?= e($doc['nombre']) ?>
-                                        <?php if ($doc['estado'] === 'procesado'): ?>
-                                        <span class="badge badge-success" style="font-size: 0.625rem;">✓ Procesado</span>
-                                        <?php else: ?>
-                                        <span class="badge badge-warning" style="font-size: 0.625rem;">⏳ Procesando...</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="doc-desc"><?= e($doc['descripcion']) ?></div>
-                                    <div class="doc-meta">
-                                        <span>📁 <?= e($doc['tamaño']) ?></span>
-                                        <span>📅 <?= date('d/m/Y', strtotime($doc['fecha'])) ?></span>
-                                        <span>🏷️ <?= ucfirst($doc['tipo']) ?></span>
-                                    </div>
-                                </div>
-                                <div class="doc-actions">
-                                    <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="action" value="reprocess_doc">
-                                        <input type="hidden" name="doc_id" value="<?= $doc['id'] ?>">
-                                        <button type="submit" class="btn btn-secondary btn-doc" title="Reprocesar">
-                                            🔄 Reprocesar
-                                        </button>
-                                    </form>
-                                    <form method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar este documento de la base de conocimiento?')">
-                                        <input type="hidden" name="action" value="delete_doc">
-                                        <input type="hidden" name="doc_id" value="<?= $doc['id'] ?>">
-                                        <button type="submit" class="btn btn-secondary btn-doc" style="color: #ef4444;" title="Eliminar">
-                                            🗑️
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -939,13 +566,14 @@ $flash = getFlash();
                                         <th>ESCUELA</th>
                                         <th>ESTADO</th>
                                         <th>FECHA</th>
+                                        <th>ACCIÓN</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($bicicletas as $bici): ?>
-                                    <tr data-estado="<?= $bici['estado'] ?>">
+                                    <tr data-estado="<?= $bici['estado'] ?>" data-bici-id="<?= $bici['id'] ?>">
                                         <td><strong><?= e($bici['codigo']) ?></strong></td>
-                                        <td>
+                                        <td class="col-alumno">
                                             <?php if ($bici['alumno']): ?>
                                                 <?= e($bici['alumno']['nombre']) ?><br>
                                                 <small class="text-muted">DNI: <?= e($bici['alumno']['dni']) ?></small>
@@ -953,7 +581,7 @@ $flash = getFlash();
                                                 <em class="text-muted">Sin asignar</em>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="col-escuela">
                                             <?php if ($bici['escuela']): ?>
                                                 <?= e($bici['escuela']['nombre']) ?>
                                             <?php else: ?>
@@ -962,21 +590,21 @@ $flash = getFlash();
                                         </td>
                                         <td>
                                             <?php
-                                            $estadoClass = [
+                                            $estadoClass = array(
                                                 'deposito' => 'badge-secondary',
                                                 'armada' => 'badge-warning',
                                                 'en_escuela' => 'badge-info',
                                                 'entregada' => 'badge-success',
-                                            ];
-                                            $estadoLabel = [
+                                            );
+                                            $estadoLabel = array(
                                                 'deposito' => 'En Depósito',
                                                 'armada' => 'Armada',
                                                 'en_escuela' => 'En Escuela',
                                                 'entregada' => 'Entregada',
-                                            ];
+                                            );
                                             ?>
-                                            <span class="badge <?= $estadoClass[$bici['estado']] ?? 'badge-secondary' ?>">
-                                                <?= $estadoLabel[$bici['estado']] ?? $bici['estado'] ?>
+                                            <span class="badge <?= isset($estadoClass[$bici['estado']]) ? $estadoClass[$bici['estado']] : 'badge-secondary' ?>">
+                                                <?= isset($estadoLabel[$bici['estado']]) ? $estadoLabel[$bici['estado']] : $bici['estado'] ?>
                                             </span>
                                         </td>
                                         <td>
@@ -986,6 +614,25 @@ $flash = getFlash();
                                                 <?= date('d/m/Y', strtotime($bici['fecha_armado'])) ?>
                                             <?php else: ?>
                                                 -
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($bici['estado'] === 'deposito'): ?>
+                                                <form method="POST" style="display:inline">
+                                                    <input type="hidden" name="action" value="armar">
+                                                    <input type="hidden" name="bici_id" value="<?= $bici['id'] ?>">
+                                                    <button type="submit" class="btn btn-warning btn-sm">🔧 Armar</button>
+                                                </form>
+                                            <?php elseif ($bici['estado'] === 'armada'): ?>
+                                                <button class="btn btn-primary btn-sm" onclick="mostrarModalSuministrar(<?= $bici['id'] ?>, '<?= e($bici['codigo']) ?>')">🚚 Suministrar</button>
+                                            <?php elseif ($bici['estado'] === 'en_escuela'): ?>
+                                                <button class="btn btn-success btn-sm" onclick="mostrarModalEntregar(<?= $bici['id'] ?>, '<?= e($bici['codigo']) ?>')">🎓 Entregar</button>
+                                            <?php elseif ($bici['estado'] === 'entregada'): ?>
+                                                <form method="POST" style="display:inline">
+                                                    <input type="hidden" name="action" value="reasignar">
+                                                    <input type="hidden" name="bici_id" value="<?= $bici['id'] ?>">
+                                                    <button type="submit" class="btn btn-secondary btn-sm">↺ Reasignar</button>
+                                                </form>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -1037,19 +684,126 @@ $flash = getFlash();
                 </div>
                 <script>
                 // Buscador de escuelas en tiempo real
-                document.getElementById('searchEscuela')?.addEventListener('input', function(e) {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const rows = document.querySelectorAll('#escuelasTableBody tr');
-
-                    rows.forEach(row => {
-                        const text = row.textContent.toLowerCase();
-                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                var searchEscuelaEl = document.getElementById('searchEscuela');
+                if (searchEscuelaEl) {
+                    searchEscuelaEl.addEventListener('input', function(e) {
+                        var searchTerm = e.target.value.toLowerCase();
+                        var rows = document.querySelectorAll('#escuelasTableBody tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            var text = rows[i].textContent.toLowerCase();
+                            rows[i].style.display = text.indexOf(searchTerm) >= 0 ? '' : 'none';
+                        }
                     });
-                });
+                }
                 </script>
 
                 <?php elseif ($tabActiva === 'reportes'): ?>
-                <!-- Reportes -->
+                <!-- Resumen Ejecutivo -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Resumen Ejecutivo del Programa</h3>
+                        <span class="badge badge-live">Datos en tiempo real</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid-4">
+                            <div class="stat-card">
+                                <div class="stat-icon azul">👥</div>
+                                <div class="stat-info">
+                                    <span class="stat-value"><?php echo number_format($totalAlumnos); ?></span>
+                                    <span class="stat-label">Alumnos inscriptos</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon verde">🎓</div>
+                                <div class="stat-info">
+                                    <span class="stat-value"><?php echo number_format($alumnosConBiciTotal); ?></span>
+                                    <span class="stat-label">Alumnos con TuBi</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon naranja">🏫</div>
+                                <div class="stat-info">
+                                    <span class="stat-value"><?php echo number_format($totalEscuelas); ?></span>
+                                    <span class="stat-label">Escuelas activas</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon morado">📋</div>
+                                <div class="stat-info">
+                                    <span class="stat-value"><?php echo number_format($totalOrdenes); ?></span>
+                                    <span class="stat-label">Ordenes generadas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Progreso Educativo -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Progreso Educativo</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metric-item" style="text-align: center; padding: 1rem 0;">
+                                <span style="font-size: 2.5rem; font-weight: 700; color: #354393;"><?php echo $porcEducativo; ?>%</span>
+                                <p style="margin: 0.5rem 0 0; color: var(--text-secondary);">Promedio de avance en modulos educativos</p>
+                            </div>
+                            <div class="progress-section" style="margin-top: 1rem;">
+                                <div class="progress-header">
+                                    <span>Promedio modulos completados</span>
+                                    <span class="progress-percent"><?php echo $promedioModulos; ?>/<?php echo $totalModulos; ?></span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width:<?php echo $porcEducativo; ?>%;background:#354393"></div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                                    <span style="color:var(--text-secondary);font-size:0.85rem;">Total modulos disponibles</span>
+                                    <strong><?php echo $totalModulos; ?></strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:var(--text-secondary);font-size:0.85rem;">Usuarios del sistema</span>
+                                    <strong><?php echo $totalUsuarios; ?></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bicis por Escuela (Top 5) -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Bicicletas por Escuela (Top 5)</h3>
+                        </div>
+                        <div class="card-body">
+                            <?php if (!empty($bicisPorEscuela)): ?>
+                            <?php foreach ($bicisPorEscuela as $escItem): ?>
+                            <?php
+                                $escTotal = max((int)$escItem['total_bicis'], 1);
+                                $escEntregadas = (int)$escItem['entregadas'];
+                                $escPorc = round(($escEntregadas / $escTotal) * 100);
+                            ?>
+                            <div class="distribution-item">
+                                <div class="dist-header">
+                                    <span class="dist-label" style="font-size: 0.85rem;">
+                                        🏫 <?php echo e($escItem['nombre']); ?>
+                                    </span>
+                                    <span class="dist-value"><?php echo $escEntregadas; ?>/<?php echo $escTotal; ?></span>
+                                </div>
+                                <div class="progress-bar thin">
+                                    <div class="progress-fill" style="width:<?php echo $escPorc; ?>%;background:<?php echo $escPorc >= 75 ? '#22c55e' : ($escPorc >= 40 ? '#f59e0b' : '#3b82f6'); ?>"></div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                            <?php else: ?>
+                            <p style="text-align:center;color:#888;padding:1rem 0;">Sin datos de escuelas</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generador de Reportes -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Generador de Reportes</h3>
@@ -1059,7 +813,7 @@ $flash = getFlash();
                             <div class="report-card" onclick="generarReporte('general')">
                                 <div class="report-icon">📊</div>
                                 <h4>Reporte General</h4>
-                                <p>Estadísticas completas del programa</p>
+                                <p>Estadisticas completas del programa</p>
                             </div>
                             <div class="report-card" onclick="generarReporte('entregas')">
                                 <div class="report-icon">📋</div>
@@ -1069,12 +823,12 @@ $flash = getFlash();
                             <div class="report-card" onclick="generarReporte('escuelas')">
                                 <div class="report-icon">🏫</div>
                                 <h4>Reporte por Escuela</h4>
-                                <p>Detalle por institución educativa</p>
+                                <p>Detalle por institucion educativa</p>
                             </div>
                             <div class="report-card" onclick="generarReporte('proveedores')">
                                 <div class="report-icon">🚚</div>
                                 <h4>Reporte de Proveedores</h4>
-                                <p>Producción por proveedor</p>
+                                <p>Produccion por proveedor</p>
                             </div>
                         </div>
                     </div>
@@ -1092,158 +846,475 @@ $flash = getFlash();
         </main>
     </div>
 
-    <!-- Modal de carga de documento -->
-    <div id="modalUpload" class="modal" style="display:none">
-        <div class="modal-backdrop" onclick="cerrarModal()"></div>
+    <!-- Modal Suministrar (Admin) -->
+    <div id="modalSuministrar" class="modal" style="display:none">
+        <div class="modal-backdrop" onclick="cerrarModalSuministrar()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>📄 Cargar Documento</h3>
-                <button onclick="cerrarModal()" class="modal-close">&times;</button>
+                <h3>Suministrar Bicicleta a Escuela</h3>
+                <button onclick="cerrarModalSuministrar()" class="modal-close">&times;</button>
             </div>
-            <form method="POST" class="upload-form">
-                <input type="hidden" name="action" value="upload_doc">
+            <form method="POST">
+                <input type="hidden" name="action" value="suministrar">
+                <input type="hidden" name="bici_id" id="suministrarBiciId">
                 <div class="modal-body">
+                    <p>Bicicleta: <strong id="suministrarBiciCodigo"></strong></p>
                     <div class="form-group">
-                        <label>Nombre del documento *</label>
-                        <input type="text" class="form-control" name="doc_nombre" placeholder="Ej: Manual de Entregas 2026" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Tipo de documento</label>
-                            <select class="form-control" name="doc_tipo">
-                                <option value="manual">📕 Manual</option>
-                                <option value="faq">❓ FAQ / Preguntas frecuentes</option>
-                                <option value="protocolo">📜 Protocolo</option>
-                                <option value="otro">📄 Otro</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Archivo PDF</label>
-                            <input type="file" class="form-control" accept=".pdf" style="padding: 0.5rem;">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea class="form-control" name="doc_descripcion" rows="2" placeholder="Describe brevemente el contenido del documento..."></textarea>
-                    </div>
-                    <div style="padding: 1rem; background: #8b5cf615; border-radius: var(--border-radius); border-left: 3px solid #8b5cf6;">
-                        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">
-                            <strong>💡 Nota:</strong> El documento será procesado automáticamente y su contenido estará disponible para los asistentes de chat IA en todos los paneles.
-                        </p>
+                        <label>Seleccionar Escuela *</label>
+                        <select class="form-control" name="escuela_id" required>
+                            <option value="">-- Seleccionar escuela --</option>
+                            <?php foreach ($escuelas as $esc): ?>
+                            <option value="<?= $esc['id'] ?>"><?= e($esc['nombre']) ?> - <?= e($esc['localidad']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">📤 Cargar Documento</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalSuministrar()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar Suministro</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Chat Widget -->
-    <div class="chat-widget" id="chatBox">
-        <button class="chat-fab" id="chatToggle" title="Chat TuBi Admin">
-            <span>🤖</span>
-        </button>
-        <div class="chat-panel" id="chatWindow" style="display: none;">
-            <div class="chat-panel-header">
-                <span>🔒 TuBi Admin Chat</span>
-                <button class="chat-panel-close" id="chatClose">×</button>
+    <!-- Modal Entregar (Admin) -->
+    <div id="modalEntregar" class="modal" style="display:none">
+        <div class="modal-backdrop" onclick="cerrarModalEntregar()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Entregar Bicicleta a Alumno</h3>
+                <button onclick="cerrarModalEntregar()" class="modal-close">&times;</button>
             </div>
-            <div class="chat-panel-messages" id="chatMessages"></div>
-            <div class="chat-panel-input">
-                <input type="text" id="chatInput" placeholder="Consultá sobre el programa..." autocomplete="off">
-                <button id="chatSend">➤</button>
+            <form method="POST">
+                <input type="hidden" name="action" value="entregar">
+                <input type="hidden" name="bici_id" id="entregarBiciId">
+                <div class="modal-body">
+                    <p>Bicicleta: <strong id="entregarBiciCodigo"></strong></p>
+                    <div class="form-group">
+                        <label>DNI del Alumno *</label>
+                        <input type="text" class="form-control" name="dni" placeholder="Ingrese DNI" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Alumno *</label>
+                        <input type="text" class="form-control" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalEntregar()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar Entrega</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="modalConfirm" class="modal" style="display:none">
+        <div class="modal-backdrop" onclick="cerrarConfirm()"></div>
+        <div class="modal-content" style="max-width:420px">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmar acción</h3>
+                <button onclick="cerrarConfirm()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:1.5rem">
+                <div id="confirmIcon" style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+                <p id="confirmMessage" style="font-size:1rem;color:var(--text-primary);margin:0"></p>
+            </div>
+            <div class="modal-footer" style="justify-content:center;gap:1rem">
+                <button type="button" class="btn btn-secondary" onclick="cerrarConfirm()">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <script src="<?= BASE_URL ?>assets/js/chat.js"></script>
+    <!-- Toast de Éxito Global -->
+    <div id="toastGlobal" style="position:fixed;top:1.5rem;right:1.5rem;z-index:10000;display:none">
+        <div style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:1rem 1.5rem;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;font-weight:500;animation:toastSlideIn 0.4s ease">
+            <span style="font-size:1.25rem">✓</span>
+            <span id="toastMessage">Acción completada</span>
+        </div>
+    </div>
+    <style>
+    @keyframes toastSlideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes toastSlideOut { from{transform:translateX(0);opacity:1} to{transform:translateX(100%);opacity:0} }
+    .inline-notif { display:flex; align-items:center; gap:0.5rem; padding:0.625rem 1rem; border-radius:8px; font-size:0.8125rem; animation:slideIn 0.3s ease; }
+    .inline-notif.success { background:rgba(34,197,94,0.1); color:#22c55e; border:1px solid rgba(34,197,94,0.2); }
+    .inline-notif.error { background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2); }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+    .row-success { animation:rowFlash 2s ease; }
+    @keyframes rowFlash { 0%{background:transparent} 30%{background:rgba(34,197,94,0.15)} 100%{background:transparent} }
+    .num-updated { animation:numPop 0.5s ease; color:#22c55e !important; }
+    @keyframes numPop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+    .btn-processing { opacity:0.7; pointer-events:none; }
+    </style>
+
     <script>
-    // Sistema de tema
-    const themeToggle = document.getElementById('themeToggle');
-    const html = document.documentElement;
-    const savedTheme = localStorage.getItem('tubi-theme') || 'dark';
-    if (savedTheme === 'light') {
-        html.setAttribute('data-theme', 'light');
+    // === Theme Toggle ===
+    var themeToggle = document.getElementById('themeToggle');
+    var moonIcon = themeToggle ? themeToggle.querySelector('.icon-moon') : null;
+    var sunIcon = themeToggle ? themeToggle.querySelector('.icon-sun') : null;
+
+    var savedTheme = localStorage.getItem('tubi-theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+        if (moonIcon) moonIcon.style.display = 'none';
+        if (sunIcon) sunIcon.style.display = 'block';
+    } else {
+        document.body.removeAttribute('data-theme');
+        if (moonIcon) moonIcon.style.display = 'block';
+        if (sunIcon) sunIcon.style.display = 'none';
     }
 
-    themeToggle?.addEventListener('click', () => {
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        if (newTheme === 'light') {
-            html.setAttribute('data-theme', 'light');
-        } else {
-            html.removeAttribute('data-theme');
-        }
-        localStorage.setItem('tubi-theme', newTheme);
-    });
-
-    function filtrarTabla() {
-        const filter = document.getElementById('searchBici')?.value.toLowerCase() || '';
-        document.querySelectorAll('#tablaGestion tbody tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-        });
-    }
-
-    function filtrarPorEstado(estado) {
-        document.querySelectorAll('#tablaGestion tbody tr').forEach(row => {
-            if (!estado || row.dataset.estado === estado) {
-                row.style.display = '';
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            var isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                if (moonIcon) moonIcon.style.display = 'block';
+                if (sunIcon) sunIcon.style.display = 'none';
+                localStorage.setItem('tubi-theme', 'light');
             } else {
-                row.style.display = 'none';
+                document.body.setAttribute('data-theme', 'dark');
+                if (moonIcon) moonIcon.style.display = 'none';
+                if (sunIcon) sunIcon.style.display = 'block';
+                localStorage.setItem('tubi-theme', 'dark');
             }
         });
     }
 
+    // === MODALES ===
+    function mostrarModalSuministrar(biciId, biciCodigo) {
+        document.getElementById('suministrarBiciId').value = biciId;
+        document.getElementById('suministrarBiciCodigo').textContent = biciCodigo;
+        document.getElementById('modalSuministrar').style.display = 'flex';
+    }
+    function cerrarModalSuministrar() {
+        document.getElementById('modalSuministrar').style.display = 'none';
+    }
+
+    function mostrarModalEntregar(biciId, biciCodigo) {
+        document.getElementById('entregarBiciId').value = biciId;
+        document.getElementById('entregarBiciCodigo').textContent = biciCodigo;
+        document.getElementById('modalEntregar').style.display = 'flex';
+    }
+    function cerrarModalEntregar() {
+        document.getElementById('modalEntregar').style.display = 'none';
+    }
+
+    // === SISTEMA DE CONFIRMACION ===
+    var _confirmResolve = null;
+    var _confirmPendingForm = null;
+
+    function mostrarConfirm(titulo, mensaje, icono, callback) {
+        _confirmResolve = callback;
+        document.getElementById('confirmTitle').textContent = titulo;
+        document.getElementById('confirmMessage').textContent = mensaje;
+        document.getElementById('confirmIcon').textContent = icono || '⚠️';
+        document.getElementById('modalConfirm').style.display = 'flex';
+    }
+
+    function cerrarConfirm() {
+        document.getElementById('modalConfirm').style.display = 'none';
+        if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+    }
+
+    var confirmBtnEl = document.getElementById('confirmBtn');
+    if (confirmBtnEl) {
+        confirmBtnEl.addEventListener('click', function() {
+            document.getElementById('modalConfirm').style.display = 'none';
+            if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+        });
+    }
+
+    function showToast(message) {
+        var toast = document.getElementById('toastGlobal');
+        document.getElementById('toastMessage').textContent = message;
+        toast.style.display = 'block';
+        toast.querySelector('div').style.animation = 'toastSlideIn 0.4s ease';
+        setTimeout(function() {
+            toast.querySelector('div').style.animation = 'toastSlideOut 0.4s ease forwards';
+            setTimeout(function() { toast.style.display = 'none'; }, 400);
+        }, 3500);
+    }
+
+    // === TABLA Y FILTROS ===
+    function filtrarTabla() {
+        var searchEl = document.getElementById('searchBici');
+        var filter = searchEl ? searchEl.value.toLowerCase() : '';
+        var rows = document.querySelectorAll('#tablaGestion tbody tr');
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].className.indexOf('notif-row') >= 0) continue;
+            rows[i].style.display = rows[i].textContent.toLowerCase().indexOf(filter) >= 0 ? '' : 'none';
+        }
+    }
+
+    function filtrarPorEstado(estado) {
+        var rows = document.querySelectorAll('#tablaGestion tbody tr');
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].className.indexOf('notif-row') >= 0) continue;
+            if (!estado || rows[i].getAttribute('data-estado') === estado) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
     function exportarCSV() {
-        alert('📊 Exportando datos a CSV...\nEl archivo se descargará en breve.');
+        var table = document.getElementById('tablaGestion');
+        if (!table) { alert('No hay tabla para exportar'); return; }
+        var csv = [];
+        var allRows = table.querySelectorAll('tr');
+        for (var r = 0; r < allRows.length; r++) {
+            if (allRows[r].className.indexOf('notif-row') >= 0) continue;
+            var cols = allRows[r].querySelectorAll('td, th');
+            var rowData = [];
+            for (var c = 0; c < cols.length; c++) {
+                rowData.push('"' + cols[c].textContent.trim().replace(/"/g, '""') + '"');
+            }
+            csv.push(rowData.join(','));
+        }
+        var blob = new Blob(['\uFEFF' + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'tubi_admin_' + new Date().toISOString().slice(0,10) + '.csv';
+        link.click();
     }
 
     function generarReporte(tipo) {
-        const tipos = {
+        var tipos = {
             'general': 'Reporte General del Programa TuBi 2026',
             'entregas': 'Reporte de Entregas Realizadas',
             'escuelas': 'Reporte por Escuela',
-            'proveedores': 'Reporte de Producción por Proveedor'
+            'proveedores': 'Reporte de Produccion por Proveedor'
         };
-        alert('📋 Generando: ' + tipos[tipo] + '\n\nEl documento PDF se descargará en breve.');
+        alert('Generando: ' + tipos[tipo] + '\n\nEl documento PDF se descargara en breve.');
     }
 
-    function cerrarModal() {
-        document.getElementById('modalUpload').style.display = 'none';
+    // === SISTEMA DE ACCIONES EN TIEMPO REAL (ADMIN) ===
+
+    function getAdminConfirmMessage(action, biciId, formEl) {
+        var biciRow = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        var codeEl = biciRow ? biciRow.querySelector('td:first-child strong') : null;
+        var code = codeEl ? codeEl.textContent : '';
+
+        if (action === 'armar') return { title: 'Confirmar Armado', msg: 'Confirmar armado de bicicleta ' + code + '?', icon: '🔧' };
+        if (action === 'suministrar') {
+            var sel = document.querySelector('#modalSuministrar select[name="escuela_id"]');
+            var escNombre = (sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text : '';
+            return { title: 'Confirmar Suministro', msg: 'Suministrar ' + code + ' a ' + escNombre + '?', icon: '🚚' };
+        }
+        if (action === 'entregar') {
+            var nombreInput = formEl.querySelector('[name="nombre"]');
+            var nombre = nombreInput ? nombreInput.value : 'alumno';
+            return { title: 'Confirmar Entrega', msg: 'Entregar ' + code + ' al alumno ' + nombre + '?', icon: '🎓' };
+        }
+        if (action === 'reasignar') return { title: 'Confirmar Reasignacion', msg: 'Liberar bicicleta ' + code + ' para reasignacion?', icon: '↺' };
+        return null;
     }
 
-    function sincronizarIA() {
-        alert('🔄 Sincronizando base de conocimiento...\n\nTodos los documentos procesados están siendo enviados a los asistentes de chat.\n\n✅ Sincronización completada.');
+    function enviarAccionAdmin(form) {
+        var actionInput = form.querySelector('[name="action"]');
+        if (!actionInput) return;
+        var action = actionInput.value;
+        var biciIdInput = form.querySelector('[name="bici_id"]');
+        var biciId = biciIdInput ? biciIdInput.value : '';
+
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.className += ' btn-processing';
+            btn.setAttribute('data-orig', btn.innerHTML);
+            btn.innerHTML = '⏳...';
+        }
+
+        var url = window.location.pathname + '?tab=bicicletas';
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            showToast(data.message);
+                            if (action === 'armar') handleAdminArmarSuccess(biciId, data);
+                            else if (action === 'suministrar') { cerrarModalSuministrar(); handleAdminSuministrarSuccess(biciId, data); }
+                            else if (action === 'entregar') { cerrarModalEntregar(); handleAdminEntregarSuccess(biciId, data); }
+                            else if (action === 'reasignar') handleAdminReasignarSuccess(biciId, data);
+                            if (data.stats) updateAdminStats(data.stats);
+                        } else {
+                            var row = null;
+                            var parent = form.parentNode;
+                            while (parent) {
+                                if (parent.nodeName === 'TR') { row = parent; break; }
+                                parent = parent.parentNode;
+                            }
+                            if (row) showRowNotif(row, 'error', data.message);
+                            else alert(data.message);
+                            restoreBtn(btn);
+                        }
+                    } catch(ex) {
+                        alert('Error procesando respuesta');
+                        restoreBtn(btn);
+                    }
+                } else {
+                    alert('Error de conexion');
+                    restoreBtn(btn);
+                }
+            }
+        };
+        var fd = new FormData(form);
+        xhr.send(fd);
     }
 
-    // Drag and drop para zona de carga
-    const uploadZone = document.getElementById('uploadZone');
-    if (uploadZone) {
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        var actionInput = form.querySelector('[name="action"]');
+        if (!actionInput) return;
 
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
+        e.preventDefault();
+        var action = actionInput.value;
+        var biciIdInput = form.querySelector('[name="bici_id"]');
+        var biciId = biciIdInput ? biciIdInput.value : '';
 
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            document.getElementById('modalUpload').style.display = 'flex';
-        });
+        var confirmInfo = getAdminConfirmMessage(action, biciId, form);
+        if (confirmInfo) {
+            mostrarConfirm(confirmInfo.title, confirmInfo.msg, confirmInfo.icon, function(confirmed) {
+                if (confirmed) enviarAccionAdmin(form);
+            });
+        } else {
+            enviarAccionAdmin(form);
+        }
+    });
+
+    function restoreBtn(btn) {
+        if (btn) {
+            btn.className = btn.className.replace(' btn-processing', '');
+            btn.innerHTML = btn.getAttribute('data-orig') || 'Accion';
+        }
+    }
+
+    // === HANDLERS DE EXITO POR ACCION ===
+
+    function handleAdminArmarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'armada');
+        row.querySelector('.badge').className = 'badge badge-warning';
+        row.querySelector('.badge').textContent = 'Armada';
+        var code = row.querySelector('td:first-child strong').textContent;
+        row.querySelector('td:last-child').innerHTML = '<button class="btn btn-primary btn-sm" onclick="mostrarModalSuministrar(' + biciId + ', \'' + code + '\')">🚚 Suministrar</button>';
+        flashRow(row);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function handleAdminSuministrarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'en_escuela');
+        row.querySelector('.badge').className = 'badge badge-info';
+        row.querySelector('.badge').textContent = 'En Escuela';
+        var escCell = row.querySelector('.col-escuela');
+        if (escCell) escCell.innerHTML = data.escuela_nombre;
+        var code = row.querySelector('td:first-child strong').textContent;
+        row.querySelector('td:last-child').innerHTML = '<button class="btn btn-success btn-sm" onclick="mostrarModalEntregar(' + biciId + ', \'' + code + '\')">🎓 Entregar</button>';
+        flashRow(row);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function handleAdminEntregarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'entregada');
+        row.querySelector('.badge').className = 'badge badge-success';
+        row.querySelector('.badge').textContent = 'Entregada';
+        var alumnoCell = row.querySelector('.col-alumno');
+        if (alumnoCell) alumnoCell.innerHTML = data.alumno_nombre + '<br><small class="text-muted">DNI: ' + data.alumno_dni + '</small>';
+        row.querySelector('td:last-child').innerHTML = '<form method="POST" style="display:inline"><input type="hidden" name="action" value="reasignar"><input type="hidden" name="bici_id" value="' + biciId + '"><button type="submit" class="btn btn-secondary btn-sm">↺ Reasignar</button></form>';
+        var cells = row.querySelectorAll('td');
+        if (cells[4]) cells[4].textContent = new Date().toLocaleDateString('es-AR');
+        flashRow(row);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function handleAdminReasignarSuccess(biciId, data) {
+        var row = document.querySelector('tr[data-bici-id="' + biciId + '"]');
+        if (!row) return;
+        row.setAttribute('data-estado', 'en_escuela');
+        row.querySelector('.badge').className = 'badge badge-info';
+        row.querySelector('.badge').textContent = 'En Escuela';
+        var alumnoCell = row.querySelector('.col-alumno');
+        if (alumnoCell) alumnoCell.innerHTML = '<em class="text-muted">Sin asignar</em>';
+        var code = row.querySelector('td:first-child strong').textContent;
+        row.querySelector('td:last-child').innerHTML = '<button class="btn btn-success btn-sm" onclick="mostrarModalEntregar(' + biciId + ', \'' + code + '\')">🎓 Entregar</button>';
+        flashRow(row);
+        showRowNotif(row, 'success', '✓ ' + data.message);
+    }
+
+    function flashRow(row) {
+        row.className += ' row-success';
+        setTimeout(function() { row.className = row.className.replace(' row-success', ''); }, 2100);
+    }
+
+    function showRowNotif(row, type, message) {
+        var bId = row.getAttribute('data-bici-id');
+        var prev = row.parentNode.querySelector('.notif-row[data-for="' + bId + '"]');
+        if (prev) prev.parentNode.removeChild(prev);
+        var notifRow = document.createElement('tr');
+        notifRow.className = 'notif-row';
+        notifRow.setAttribute('data-for', bId);
+        var colCount = row.querySelectorAll('td').length;
+        var icon = type === 'success' ? '✓' : '✕';
+        notifRow.innerHTML = '<td colspan="' + colCount + '"><div class="inline-notif ' + type + '"><span>' + icon + '</span><span>' + message + '</span></div></td>';
+        row.parentNode.insertBefore(notifRow, row.nextSibling);
+        setTimeout(function() { notifRow.style.transition = 'opacity 0.5s'; notifRow.style.opacity = '0'; setTimeout(function() { if (notifRow.parentNode) notifRow.parentNode.removeChild(notifRow); }, 500); }, 4000);
+    }
+
+    // === ACTUALIZAR STATS DEL ADMIN ===
+    function updateAdminStats(stats) {
+        var stageCounts = document.querySelectorAll('.stage-count');
+        if (stageCounts.length >= 4) {
+            animateNum(stageCounts[0], stats.en_deposito);
+            animateNum(stageCounts[1], stats.armadas);
+            animateNum(stageCounts[2], stats.en_escuelas);
+            animateNum(stageCounts[3], stats.entregadas);
+        }
+
+        var statVals = document.querySelectorAll('.stat-value');
+        if (statVals.length >= 4) {
+            animateNum(statVals[0], stats.total_bicicletas);
+            animateNum(statVals[1], stats.entregadas);
+            animateNum(statVals[2], stats.en_escuelas);
+            animateNum(statVals[3], stats.armadas);
+        }
+
+        var progressBar = document.querySelector('.progress-fill');
+        if (progressBar && stats.total_bicicletas > 0) {
+            var pct = Math.round((stats.entregadas / stats.total_bicicletas) * 100 * 10) / 10;
+            progressBar.style.width = pct + '%';
+            var pctLabel = document.querySelector('.progress-percent');
+            if (pctLabel) pctLabel.textContent = pct + '%';
+        }
+    }
+
+    function animateNum(el, newVal) {
+        if (!el) return;
+        var old = parseInt(el.textContent) || 0;
+        if (old === newVal) return;
+        el.textContent = newVal;
+        el.className += ' num-updated';
+        setTimeout(function() { el.className = el.className.replace(' num-updated', ''); }, 600);
     }
 
     // Auto-refresh cada 90 segundos para admin
-    setTimeout(() => location.reload(), 90000);
+    setTimeout(function() { location.reload(); }, 90000);
     </script>
 
-    <!-- Tutorial y Chat -->
+    <!-- Tutorial -->
     <?php include __DIR__ . '/../../includes/tutorial.php'; ?>
 
     <script src="<?= BASE_URL ?>assets/js/toast.js"></script>
+
+    <?php include __DIR__ . '/../../includes/zocalo-footer.php'; ?>
 </body>
 </html>

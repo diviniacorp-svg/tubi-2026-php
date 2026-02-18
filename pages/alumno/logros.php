@@ -13,10 +13,11 @@ $user = getCurrentUser();
 $pageTitle = 'Mis Logros';
 
 // Obtener logros del sistema
-$todosLosLogros = getData('logros') ?: [];
+$todosLosLogros = getData('logros');
+if (!$todosLosLogros) $todosLosLogros = array();
 
 // Logros obtenidos por el alumno (simulado - en producción vendría de BD)
-$logrosObtenidosIds = [1, 2, 5]; // IDs de logros que el alumno ya obtuvo
+$logrosObtenidosIds = array(1, 2, 5);
 
 // Estadísticas
 $totalLogros = count($todosLosLogros);
@@ -39,7 +40,7 @@ $porcentajeCompletado = $totalLogros > 0 ? round(($logrosObtenidos / $totalLogro
         }
 
         .logros-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #354393 0%, #4aacc4 100%);
             color: white;
             padding: 2rem;
             border-radius: 16px;
@@ -195,9 +196,7 @@ $porcentajeCompletado = $totalLogros > 0 ? round(($logrosObtenidos / $totalLogro
         <!-- Header simple -->
         <header class="header">
             <div class="header-inner">
-                <a href="<?= BASE_URL ?>" class="logo">
-                    <span>🚲</span>
-                    <span>TuBi 2026</span>
+                <a href="<?= BASE_URL ?>" class="logo" style="display: flex; align-items: center;">
                 </a>
                 <a href="<?= BASE_URL ?>pages/alumno/dashboard.php" class="btn btn-secondary btn-sm">← Volver al Panel</a>
             </div>
@@ -220,7 +219,7 @@ $porcentajeCompletado = $totalLogros > 0 ? round(($logrosObtenidos / $totalLogro
                             <div class="logros-stat-label">Completado</div>
                         </div>
                         <div class="logros-stat">
-                            <div class="logros-stat-value"><?= array_sum(array_map(fn($l) => in_array($l['id'], $logrosObtenidosIds) ? $l['puntos'] : 0, $todosLosLogros)) ?></div>
+                            <div class="logros-stat-value"><?php $puntosGanados = 0; foreach ($todosLosLogros as $l) { if (in_array($l['id'], $logrosObtenidosIds)) $puntosGanados += $l['puntos']; } echo $puntosGanados; ?></div>
                             <div class="logros-stat-label">Puntos Ganados</div>
                         </div>
                     </div>

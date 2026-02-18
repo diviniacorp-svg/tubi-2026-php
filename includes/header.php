@@ -12,7 +12,7 @@ $flash = getFlash();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'TuBi 2026') ?> - Tu Bicicleta San Luis</title>
+    <title><?= e(isset($pageTitle) ? $pageTitle : 'TuBi 2026') ?> - Tu Bicicleta San Luis</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
     <script src="<?= BASE_URL ?>assets/js/toast.js" defer></script>
@@ -23,7 +23,6 @@ $flash = getFlash();
         <header class="header">
             <div class="header-inner">
                 <a href="<?= BASE_URL ?>" class="logo" style="min-width: 140px; height: 50px; display: flex; align-items: center;">
-                    <!-- Espacio para logo - agregar imagen aquí -->
                 </a>
 
                 <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema (Oscuro/Claro/Azul)" title="Click para cambiar tema" style="margin-right: 1rem;">

@@ -1,0 +1,58 @@
+/**
+ * TUBI 2026 - Estilos Institucionales Compartidos
+ * Colores: Azul #354393, Turquesa #4aacc4, Gris #414242
+ * Tipografía: Ubuntu
+ */
+
+/* === RESET & BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { font-family: 'Ubuntu', -apple-system, sans-serif; }
+body { background: #e4f1f7; color: #414242; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* === ZÓCALO SUPERIOR === */
+.zocalo-institucional {
+    background: linear-gradient(135deg, #354393 0%, #4aacc4 100%);
+    padding: 0.5rem 1.5rem;
+    color: white;
+}
+.zocalo-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.zocalo-left, .zocalo-right {
+    display: flex;
+    align-items: center;
+}
+.zocalo-tubi-logo { height: 54px; width: auto; }
+.zocalo-edu-img { height: 58px; width: auto; }
+
+/* === ZÓCALO PIE === */
+.zocalo-pie {
+    background: linear-gradient(135deg, #354393 0%, #4aacc4 100%);
+    padding: 1rem 1.5rem;
+    color: white;
+    margin-top: 1rem;
+}
+.zocalo-pie-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.zocalo-pie-left { display: flex; align-items: center; gap: 0.75rem; }
+.zocalo-pie-left span { font-size: 0.7rem; opacity: 0.85; display: block; }
+.zocalo-pie-sep { opacity: 0.3; font-size: 1.5rem; font-weight: 300; }
+.zocalo-pie-logo { height: 22px; width: auto; }
+.zocalo-pie-right { font-size: 0.75rem; opacity: 0.7; }
+
+/* === RESPONSIVE ZÓCALO === */
+@media (max-width: 640px) {
+    .zocalo-inner, .zocalo-pie-inner { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .zocalo-tubi-logo { height: 38px; }
+    .zocalo-edu-img { height: 44px; }
+    .zocalo-pie-left { flex-wrap: wrap; justify-content: center; }
+}

@@ -8,3 +8,9 @@ node_modules/
 vendor/
 nul
 *.zip
+cookies.txt
+cookies_alumno.txt
+ecookies.txt
+pcookies.txt
+_ul/
+*_test.html

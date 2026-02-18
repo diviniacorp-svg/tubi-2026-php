@@ -10,241 +10,241 @@ if (!isLoggedIn() || !hasRole('alumno')) {
 }
 
 $user = getCurrentUser();
-$moduloId = intval($_GET['id'] ?? 1);
+$moduloId = intval(isset($_GET['id']) ? $_GET['id'] : 1);
 
 // Base de datos de módulos con videos y preguntas
-$modulosDB = [
-    1 => [
+$modulosDB = array(
+    1 => array(
         'titulo' => 'Conocé tu Bicicleta',
         'descripcion' => 'Aprendé las partes de tu bici y cómo funciona cada una',
         'icono' => '🚲',
         'color' => '#2563eb',
         'puntos_total' => 100,
-        'videos' => [
-            [
+        'videos' => array(
+            array(
                 'id' => 'v1',
                 'titulo' => 'Las partes de la bicicleta',
                 'descripcion' => 'Conocé cada parte de tu bici',
                 'youtube_id' => 'dQw4w9WgXcQ', // Placeholder - reemplazar con video real
                 'duracion' => '3:45'
-            ]
-        ],
-        'preguntas' => [
-            [
+            )
+        ),
+        'preguntas' => array(
+            array(
                 'pregunta' => '¿Cuál es la parte de la bicicleta que te permite frenar?',
-                'opciones' => ['El pedal', 'El freno', 'El asiento', 'El manubrio'],
+                'opciones' => array('El pedal', 'El freno', 'El asiento', 'El manubrio'),
                 'correcta' => 1,
                 'puntos' => 20
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Cómo se llama la parte donde te sentás?',
-                'opciones' => ['Cuadro', 'Rueda', 'Asiento o sillín', 'Cadena'],
+                'opciones' => array('Cuadro', 'Rueda', 'Asiento o sillín', 'Cadena'),
                 'correcta' => 2,
                 'puntos' => 20
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué parte transmite la fuerza de tus piernas a la rueda?',
-                'opciones' => ['El timbre', 'Los rayos', 'La cadena', 'El reflector'],
+                'opciones' => array('El timbre', 'Los rayos', 'La cadena', 'El reflector'),
                 'correcta' => 2,
                 'puntos' => 20
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Cuántas ruedas tiene una bicicleta normal?',
-                'opciones' => ['1', '2', '3', '4'],
+                'opciones' => array('1', '2', '3', '4'),
                 'correcta' => 1,
                 'puntos' => 20
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Para qué sirve el timbre de la bici?',
-                'opciones' => ['Para ir más rápido', 'Para avisar a peatones', 'Para decorar', 'Para frenar'],
+                'opciones' => array('Para ir más rápido', 'Para avisar a peatones', 'Para decorar', 'Para frenar'),
                 'correcta' => 1,
                 'puntos' => 20
-            ]
-        ]
-    ],
-    2 => [
+            )
+        )
+    ),
+    2 => array(
         'titulo' => 'Seguridad Vial Básica',
         'descripcion' => 'Señales de tránsito y reglas para circular seguro',
         'icono' => '🛡️',
         'color' => '#06b6d4',
         'puntos_total' => 150,
-        'videos' => [
-            [
+        'videos' => array(
+            array(
                 'id' => 'v2',
                 'titulo' => 'Señales de tránsito importantes',
                 'descripcion' => 'Las señales que todo ciclista debe conocer',
                 'youtube_id' => 'dQw4w9WgXcQ',
                 'duracion' => '5:20'
-            ]
-        ],
-        'preguntas' => [
-            [
+            )
+        ),
+        'preguntas' => array(
+            array(
                 'pregunta' => '¿De qué lado de la calle debés circular con tu bici?',
-                'opciones' => ['Por la izquierda', 'Por la derecha', 'Por el medio', 'Por donde quiera'],
+                'opciones' => array('Por la izquierda', 'Por la derecha', 'Por el medio', 'Por donde quiera'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué significa una señal PARE?',
-                'opciones' => ['Acelerar', 'Detenerse completamente', 'Tocar bocina', 'Girar'],
+                'opciones' => array('Acelerar', 'Detenerse completamente', 'Tocar bocina', 'Girar'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Es obligatorio usar casco?',
-                'opciones' => ['No, es opcional', 'Sí, siempre', 'Solo de noche', 'Solo en autopistas'],
+                'opciones' => array('No, es opcional', 'Sí, siempre', 'Solo de noche', 'Solo en autopistas'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué luz de semáforo indica que podés avanzar?',
-                'opciones' => ['Roja', 'Amarilla', 'Verde', 'Todas'],
+                'opciones' => array('Roja', 'Amarilla', 'Verde', 'Todas'),
                 'correcta' => 2,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Podés llevar pasajeros en tu bicicleta TuBi?',
-                'opciones' => ['Sí, siempre', 'No, es solo para una persona', 'Sí, hasta 3 personas', 'Solo adultos'],
+                'opciones' => array('Sí, siempre', 'No, es solo para una persona', 'Sí, hasta 3 personas', 'Solo adultos'),
                 'correcta' => 1,
                 'puntos' => 30
-            ]
-        ]
-    ],
-    3 => [
+            )
+        )
+    ),
+    3 => array(
         'titulo' => 'Mantenimiento Básico',
         'descripcion' => 'Cómo cuidar y mantener tu bicicleta en buen estado',
         'icono' => '🔧',
         'color' => '#2563eb',
         'puntos_total' => 100,
-        'videos' => [
-            [
+        'videos' => array(
+            array(
                 'id' => 'v3',
                 'titulo' => 'Cuidados básicos de tu bici',
                 'descripcion' => 'Mantené tu bici siempre lista',
                 'youtube_id' => 'dQw4w9WgXcQ',
                 'duracion' => '4:15'
-            ]
-        ],
-        'preguntas' => [
-            [
+            )
+        ),
+        'preguntas' => array(
+            array(
                 'pregunta' => '¿Cada cuánto deberías revisar la presión de las ruedas?',
-                'opciones' => ['Cada año', 'Cada mes', 'Cada semana', 'Nunca'],
+                'opciones' => array('Cada año', 'Cada mes', 'Cada semana', 'Nunca'),
                 'correcta' => 2,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué parte necesita lubricación regular?',
-                'opciones' => ['El asiento', 'La cadena', 'El manubrio', 'Las luces'],
+                'opciones' => array('El asiento', 'La cadena', 'El manubrio', 'Las luces'),
                 'correcta' => 1,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Dónde es mejor guardar tu bicicleta?',
-                'opciones' => ['En la lluvia', 'Bajo techo', 'En el barro', 'En el sol directo'],
+                'opciones' => array('En la lluvia', 'Bajo techo', 'En el barro', 'En el sol directo'),
                 'correcta' => 1,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué hacer si la cadena se sale?',
-                'opciones' => ['Dejar la bici', 'Colocarla de nuevo con cuidado', 'Pedalear más fuerte', 'Cortar la cadena'],
+                'opciones' => array('Dejar la bici', 'Colocarla de nuevo con cuidado', 'Pedalear más fuerte', 'Cortar la cadena'),
                 'correcta' => 1,
                 'puntos' => 25
-            ]
-        ]
-    ],
-    4 => [
+            )
+        )
+    ),
+    4 => array(
         'titulo' => 'Seguridad Nocturna',
         'descripcion' => 'Cómo circular de noche de forma segura',
         'icono' => '🌙',
         'color' => '#06b6d4',
         'puntos_total' => 100,
-        'videos' => [
-            [
+        'videos' => array(
+            array(
                 'id' => 'v4',
                 'titulo' => 'Ciclismo nocturno seguro',
                 'descripcion' => 'Tips para andar de noche',
                 'youtube_id' => 'dQw4w9WgXcQ',
                 'duracion' => '3:30'
-            ]
-        ],
-        'preguntas' => [
-            [
+            )
+        ),
+        'preguntas' => array(
+            array(
                 'pregunta' => '¿Qué color de luz va adelante en la bici?',
-                'opciones' => ['Roja', 'Blanca', 'Azul', 'Verde'],
+                'opciones' => array('Roja', 'Blanca', 'Azul', 'Verde'),
                 'correcta' => 1,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué color de luz va atrás?',
-                'opciones' => ['Blanca', 'Amarilla', 'Roja', 'Sin luz'],
+                'opciones' => array('Blanca', 'Amarilla', 'Roja', 'Sin luz'),
                 'correcta' => 2,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué ropa es mejor usar de noche?',
-                'opciones' => ['Ropa oscura', 'Ropa clara o reflectiva', 'No importa', 'Ropa ajustada'],
+                'opciones' => array('Ropa oscura', 'Ropa clara o reflectiva', 'No importa', 'Ropa ajustada'),
                 'correcta' => 1,
                 'puntos' => 25
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Debés ir más rápido o más despacio de noche?',
-                'opciones' => ['Más rápido', 'Más despacio', 'Igual velocidad', 'Lo más rápido posible'],
+                'opciones' => array('Más rápido', 'Más despacio', 'Igual velocidad', 'Lo más rápido posible'),
                 'correcta' => 1,
                 'puntos' => 25
-            ]
-        ]
-    ],
-    5 => [
+            )
+        )
+    ),
+    5 => array(
         'titulo' => 'Primeros Auxilios',
         'descripcion' => 'Qué hacer en caso de accidente o emergencia',
         'icono' => '🏥',
         'color' => '#0891b2',
         'puntos_total' => 150,
-        'videos' => [
-            [
+        'videos' => array(
+            array(
                 'id' => 'v5',
                 'titulo' => 'Primeros auxilios para ciclistas',
                 'descripcion' => 'Cómo actuar en emergencias',
                 'youtube_id' => 'dQw4w9WgXcQ',
                 'duracion' => '6:00'
-            ]
-        ],
-        'preguntas' => [
-            [
+            )
+        ),
+        'preguntas' => array(
+            array(
                 'pregunta' => '¿Qué número llamás en caso de emergencia en Argentina?',
-                'opciones' => ['911', '100', '123', '999'],
+                'opciones' => array('911', '100', '123', '999'),
                 'correcta' => 0,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué hacer primero si tenés un accidente leve?',
-                'opciones' => ['Seguir andando', 'Detenerte en lugar seguro', 'Llamar a mamá', 'Nada'],
+                'opciones' => array('Seguir andando', 'Detenerte en lugar seguro', 'Llamar a mamá', 'Nada'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué NO debés hacer si alguien está herido grave?',
-                'opciones' => ['Llamar al 911', 'Moverlo sin cuidado', 'Esperar ayuda', 'Quedarte con la persona'],
+                'opciones' => array('Llamar al 911', 'Moverlo sin cuidado', 'Esperar ayuda', 'Quedarte con la persona'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Qué elemento es útil tener siempre?',
-                'opciones' => ['Juguetes', 'Un botiquín pequeño', 'Comida', 'Dinero'],
+                'opciones' => array('Juguetes', 'Un botiquín pequeño', 'Comida', 'Dinero'),
                 'correcta' => 1,
                 'puntos' => 30
-            ],
-            [
+            ),
+            array(
                 'pregunta' => '¿Cuál es la mejor manera de prevenir accidentes?',
-                'opciones' => ['No salir nunca', 'Circular con cuidado y atención', 'Ir muy rápido', 'No usar casco'],
+                'opciones' => array('No salir nunca', 'Circular con cuidado y atención', 'Ir muy rápido', 'No usar casco'),
                 'correcta' => 1,
                 'puntos' => 30
-            ]
-        ]
-    ]
-];
+            )
+        )
+    )
+);
 
-$modulo = $modulosDB[$moduloId] ?? $modulosDB[1];
+$modulo = isset($modulosDB[$moduloId]) ? $modulosDB[$moduloId] : $modulosDB[1];
 $pageTitle = $modulo['titulo'];
 
 include __DIR__ . '/../../includes/header.php';
@@ -831,112 +831,106 @@ include __DIR__ . '/../../includes/header.php';
 <div class="feedback-toast" id="feedbackToast"></div>
 
 <script>
-const totalQuestions = <?= count($modulo['preguntas']) ?>;
-const totalPossiblePoints = <?= $modulo['puntos_total'] ?>;
-let answers = {};
-let earnedPoints = 0;
-let correctAnswers = 0;
+var totalQuestions = <?php echo count($modulo['preguntas']); ?>;
+var totalPossiblePoints = <?php echo $modulo['puntos_total']; ?>;
+var answers = {};
+var earnedPoints = 0;
+var correctAnswers = 0;
 
-// Cargar video de YouTube
 function loadVideo(videoId) {
-    const container = document.getElementById('videoContainer');
-    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"
-        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen></iframe>`;
+    var container = document.getElementById('videoContainer');
+    container.innerHTML = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" ' +
+        'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
+        'allowfullscreen></iframe>';
 }
 
-// Mostrar sección de quiz
 function showQuiz() {
     document.getElementById('videoSection').style.display = 'none';
-    document.getElementById('quizSection').classList.add('active');
+    var quizEl = document.getElementById('quizSection');
+    quizEl.className = quizEl.className + ' active';
     updateProgress(50);
     document.getElementById('progressText').textContent = 'Paso 2 de 2';
 }
 
-// Seleccionar opción
 function selectOption(questionIdx, optionIdx) {
-    const questionCard = document.getElementById('question' + questionIdx);
-    if (questionCard.classList.contains('answered')) return;
+    var questionCard = document.getElementById('question' + questionIdx);
+    if (questionCard.className.indexOf('answered') !== -1) return;
 
-    // Deseleccionar opciones anteriores
-    const options = questionCard.querySelectorAll('.option-btn');
-    options.forEach(opt => opt.classList.remove('selected'));
+    var options = questionCard.querySelectorAll('.option-btn');
+    for (var j = 0; j < options.length; j++) {
+        options[j].className = options[j].className.replace(' selected', '');
+    }
 
-    // Seleccionar nueva opción
-    const selectedOption = questionCard.querySelector(`[data-option="${optionIdx}"]`);
-    selectedOption.classList.add('selected');
+    var selectedOption = questionCard.querySelector('[data-option="' + optionIdx + '"]');
+    selectedOption.className = selectedOption.className + ' selected';
 
-    // Guardar respuesta
     answers[questionIdx] = optionIdx;
 
-    // Habilitar botón de enviar si todas las preguntas tienen respuesta
     if (Object.keys(answers).length === totalQuestions) {
         document.getElementById('submitBtn').disabled = false;
     }
 }
 
-// Enviar quiz
 function submitQuiz() {
     correctAnswers = 0;
     earnedPoints = 0;
 
-    for (let i = 0; i < totalQuestions; i++) {
-        const questionCard = document.getElementById('question' + i);
-        const correctAnswer = parseInt(questionCard.dataset.correct);
-        const points = parseInt(questionCard.dataset.points);
-        const userAnswer = answers[i];
+    for (var i = 0; i < totalQuestions; i++) {
+        var questionCard = document.getElementById('question' + i);
+        var correctAnswer = parseInt(questionCard.getAttribute('data-correct'), 10);
+        var points = parseInt(questionCard.getAttribute('data-points'), 10);
+        var userAnswer = answers[i];
 
-        // Marcar como respondida
-        questionCard.classList.add('answered');
+        questionCard.className = questionCard.className + ' answered';
 
-        // Deshabilitar opciones
-        const options = questionCard.querySelectorAll('.option-btn');
-        options.forEach(opt => opt.classList.add('disabled'));
+        var options = questionCard.querySelectorAll('.option-btn');
+        for (var j = 0; j < options.length; j++) {
+            options[j].className = options[j].className + ' disabled';
+        }
 
-        // Marcar correcta/incorrecta
-        const correctBtn = questionCard.querySelector(`[data-option="${correctAnswer}"]`);
-        correctBtn.classList.add('correct');
+        var correctBtn = questionCard.querySelector('[data-option="' + correctAnswer + '"]');
+        correctBtn.className = correctBtn.className + ' correct';
 
         if (userAnswer === correctAnswer) {
             correctAnswers++;
             earnedPoints += points;
-            showFeedback('¡Correcto! +' + points + ' puntos', 'success');
+            showFeedback('Correcto! +' + points + ' puntos', 'success');
         } else {
-            const selectedBtn = questionCard.querySelector(`[data-option="${userAnswer}"]`);
-            selectedBtn.classList.add('incorrect');
+            var selectedBtn = questionCard.querySelector('[data-option="' + userAnswer + '"]');
+            if (selectedBtn) selectedBtn.className = selectedBtn.className + ' incorrect';
         }
     }
 
-    // Mostrar resultado después de un momento
-    setTimeout(() => {
+    setTimeout(function() {
         showResult();
     }, 1500);
 }
 
-// Mostrar resultado final
 function showResult() {
-    document.getElementById('quizSection').classList.remove('active');
-    document.getElementById('resultSection').classList.add('active');
+    var quizEl = document.getElementById('quizSection');
+    quizEl.className = quizEl.className.replace(' active', '');
+    var resultEl = document.getElementById('resultSection');
+    resultEl.className = resultEl.className + ' active';
 
-    const resultIcon = document.getElementById('resultIcon');
-    const resultTitle = document.getElementById('resultTitle');
-    const resultSubtitle = document.getElementById('resultSubtitle');
+    var resultIcon = document.getElementById('resultIcon');
+    var resultTitle = document.getElementById('resultTitle');
+    var resultSubtitle = document.getElementById('resultSubtitle');
 
     if (correctAnswers === totalQuestions) {
-        resultIcon.innerHTML = '🏆';
-        resultIcon.classList.add('success');
-        resultTitle.textContent = '¡Perfecto!';
+        resultIcon.innerHTML = '\uD83C\uDFC6';
+        resultIcon.className = resultIcon.className + ' success';
+        resultTitle.textContent = 'Perfecto!';
         resultSubtitle.textContent = 'Respondiste todas las preguntas correctamente';
     } else if (correctAnswers >= totalQuestions / 2) {
-        resultIcon.innerHTML = '🎉';
-        resultIcon.classList.add('success');
-        resultTitle.textContent = '¡Muy bien!';
-        resultSubtitle.textContent = 'Completaste el módulo exitosamente';
+        resultIcon.innerHTML = '\uD83C\uDF89';
+        resultIcon.className = resultIcon.className + ' success';
+        resultTitle.textContent = 'Muy bien!';
+        resultSubtitle.textContent = 'Completaste el modulo exitosamente';
     } else {
-        resultIcon.innerHTML = '💪';
-        resultIcon.classList.add('partial');
-        resultTitle.textContent = '¡Seguí practicando!';
-        resultSubtitle.textContent = 'Podés repetir el módulo para mejorar';
+        resultIcon.innerHTML = '\uD83D\uDCAA';
+        resultIcon.className = resultIcon.className + ' partial';
+        resultTitle.textContent = 'Segui practicando!';
+        resultSubtitle.textContent = 'Podes repetir el modulo para mejorar';
     }
 
     document.getElementById('correctCount').textContent = correctAnswers + '/' + totalQuestions;
@@ -946,23 +940,20 @@ function showResult() {
     updateProgress(100);
 }
 
-// Actualizar barra de progreso
 function updateProgress(percent) {
     document.getElementById('progressFill').style.width = percent + '%';
 }
 
-// Mostrar feedback toast
 function showFeedback(message, type) {
-    const toast = document.getElementById('feedbackToast');
+    var toast = document.getElementById('feedbackToast');
     toast.textContent = message;
     toast.className = 'feedback-toast ' + type + ' show';
 
-    setTimeout(() => {
-        toast.classList.remove('show');
+    setTimeout(function() {
+        toast.className = toast.className.replace(' show', '');
     }, 2000);
 }
 
-// Inicializar
 updateProgress(25);
 </script>
 
