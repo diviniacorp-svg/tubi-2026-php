@@ -5,170 +5,170 @@
  */
 
 // Tutoriales por rol
-$tutoriales = [
-    'alumno' => [
+$tutoriales = array(
+    'alumno' => array(
         'titulo' => 'Bienvenido a TuBi',
         'subtitulo' => 'Tu asistente para aprovechar al máximo tu bicicleta',
-        'pasos' => [
-            [
+        'pasos' => array(
+            array(
                 'icono' => '🏠',
                 'titulo' => 'Mi TuBi',
                 'descripcion' => 'Acá podés ver el estado de tu bicicleta, tus puntos acumulados y los logros que has desbloqueado.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📚',
                 'titulo' => 'Aprendé Jugando',
                 'descripcion' => 'Completá los módulos de aprendizaje: mirá los videos y respondé las preguntas para ganar puntos.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🎮',
                 'titulo' => 'Retos Diarios',
                 'descripcion' => 'Cada día tenés nuevos retos según la hora: matutinos, de tarde y nocturnos. ¡Completalos para ganar más puntos!',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🛡️',
                 'titulo' => 'Recordá',
                 'descripcion' => '¡Usá SIEMPRE el casco! Es obligatorio y puede salvar tu vida. Circulá por la derecha y respetá las señales.',
                 'color' => '#22c55e'
-            ]
-        ]
-    ],
-    'proveedor' => [
+            )
+        )
+    ),
+    'proveedor' => array(
         'titulo' => 'Panel de Proveedor',
         'subtitulo' => 'Gestión de armado y suministro de bicicletas',
-        'pasos' => [
-            [
+        'pasos' => array(
+            array(
                 'icono' => '📦',
                 'titulo' => 'Recepción',
                 'descripcion' => 'Recibí las bicicletas del depósito y escaneá el código QR para registrar la recepción en el sistema.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🔧',
                 'titulo' => 'Armado',
                 'descripcion' => 'Armá la bicicleta completamente: manubrio, pedales, asiento, ruedas. Verificá frenos y dirección.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '✅',
                 'titulo' => 'Control de Calidad',
                 'descripcion' => 'Realizá el control de calidad: frenos, cambios, dirección, ruedas infladas. Todo debe funcionar perfectamente.',
                 'color' => '#22c55e'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📱',
                 'titulo' => 'Registro',
                 'descripcion' => 'Escaneá el QR de armado completado para registrar la bici como lista para suministro.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🚚',
                 'titulo' => 'Suministro',
                 'descripcion' => 'Coordiná la entrega a las escuelas asignadas. Verificá las órdenes de suministro pendientes.',
                 'color' => '#354393'
-            ]
-        ]
-    ],
-    'escuela' => [
+            )
+        )
+    ),
+    'escuela' => array(
         'titulo' => 'Panel Escolar',
         'subtitulo' => 'Gestión de entregas y seguimiento de alumnos',
-        'pasos' => [
-            [
+        'pasos' => array(
+            array(
                 'icono' => '📋',
                 'titulo' => 'Dashboard',
                 'descripcion' => 'Visualizá el resumen de bicicletas recibidas, entregadas y pendientes de tu institución.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '👥',
                 'titulo' => 'Alumnos',
                 'descripcion' => 'Gestioná la lista de alumnos beneficiarios. Verificá documentación y asigná bicicletas.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🚲',
                 'titulo' => 'Asignación',
                 'descripcion' => 'Para asignar una bici: verificá DNI del alumno y tutor, escaneá el QR de la bicicleta y completá el acta.',
                 'color' => '#22c55e'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📝',
                 'titulo' => 'Documentación',
                 'descripcion' => 'Generá las actas de entrega y reportes de gestión para la Secretaría de Transporte.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📊',
                 'titulo' => 'Reportes',
                 'descripcion' => 'Consultá estadísticas de entregas, estado de bicicletas y progreso de los alumnos en los módulos.',
                 'color' => '#4aacc4'
-            ]
-        ]
-    ],
-    'admin' => [
+            )
+        )
+    ),
+    'admin' => array(
         'titulo' => 'Centro de Control',
         'subtitulo' => 'Administración general del programa TuBi',
-        'pasos' => [
-            [
+        'pasos' => array(
+            array(
                 'icono' => '📈',
                 'titulo' => 'Dashboard',
                 'descripcion' => 'Visualizá métricas en tiempo real: total de bicicletas, entregas, distribución por zona y rendimiento.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '👤',
                 'titulo' => 'Usuarios',
                 'descripcion' => 'Gestioná todos los usuarios del sistema: alumnos, tutores, escuelas, proveedores y administradores.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '⚙️',
                 'titulo' => 'Configuración',
                 'descripcion' => 'Ajustá parámetros del sistema, API keys, y configuración general del programa.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📊',
                 'titulo' => 'Reportes',
                 'descripcion' => 'Generá reportes detallados para la Secretaría de Transporte y autoridades provinciales.',
                 'color' => '#4aacc4'
-            ]
-        ]
-    ],
-    'tutor' => [
+            )
+        )
+    ),
+    'tutor' => array(
         'titulo' => 'Panel de Tutor',
         'subtitulo' => 'Seguimiento de tu hijo/a en el programa TuBi',
-        'pasos' => [
-            [
+        'pasos' => array(
+            array(
                 'icono' => '👁️',
                 'titulo' => 'Estado',
                 'descripcion' => 'Consultá el estado de la bicicleta asignada a tu representado/a y el proceso de entrega.',
                 'color' => '#4aacc4'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📊',
                 'titulo' => 'Progreso',
                 'descripcion' => 'Mirá el avance en los módulos de aprendizaje y puntos acumulados.',
                 'color' => '#354393'
-            ],
-            [
+            ),
+            array(
                 'icono' => '📄',
                 'titulo' => 'Documentación',
                 'descripcion' => 'Accedé a la documentación del programa y las responsabilidades como tutor.',
                 'color' => '#22c55e'
-            ],
-            [
+            ),
+            array(
                 'icono' => '🔔',
                 'titulo' => 'Notificaciones',
                 'descripcion' => 'Recibí alertas sobre el uso de la bicicleta y recordatorios importantes.',
                 'color' => '#4aacc4'
-            ],
-        ]
-    ]
-];
+            ),
+        )
+    )
+);
 
 // Obtener tutorial del rol actual
 $rolActual = isset($user['role']) ? $user['role'] : 'alumno';

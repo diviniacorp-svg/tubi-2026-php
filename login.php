@@ -11,14 +11,14 @@ if (isLoggedIn()) {
 }
 
 // Validar rol desde URL
-$allowedRoles = ['alumno', 'tutor', 'escuela', 'proveedor', 'admin'];
+$allowedRoles = array('alumno', 'tutor', 'escuela', 'proveedor', 'admin');
 $role = isset($_GET['role']) ? $_GET['role'] : 'alumno';
 if (!in_array($role, $allowedRoles)) {
     $role = 'alumno';
 }
 
-$roleConfig = [
-    'alumno' => [
+$roleConfig = array(
+    'alumno' => array(
         'title' => 'Ingreso Estudiantes',
         'subtitle' => 'Accedé a Mi TuBi App',
         'field' => 'D.N.I. Estudiante',
@@ -26,8 +26,8 @@ $roleConfig = [
         'icon' => 'student',
         'color' => '#2563eb',
         'gradient' => 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)'
-    ],
-    'tutor' => [
+    ),
+    'tutor' => array(
         'title' => 'Ingreso Tutores',
         'subtitle' => 'Panel de Tutor Responsable',
         'field' => 'D.N.I. Tutor',
@@ -35,8 +35,8 @@ $roleConfig = [
         'icon' => 'users',
         'color' => '#06b6d4',
         'gradient' => 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)'
-    ],
-    'proveedor' => [
+    ),
+    'proveedor' => array(
         'title' => 'Ingreso Proveedores',
         'subtitle' => 'Panel de Gestión',
         'field' => 'CUIT',
@@ -44,8 +44,8 @@ $roleConfig = [
         'icon' => 'truck',
         'color' => '#06b6d4',
         'gradient' => 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)'
-    ],
-    'escuela' => [
+    ),
+    'escuela' => array(
         'title' => 'Ingreso Escuelas',
         'subtitle' => 'Panel de Gestión Escolar',
         'field' => 'CUE / Usuario',
@@ -53,8 +53,8 @@ $roleConfig = [
         'icon' => 'school',
         'color' => '#0891b2',
         'gradient' => 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)'
-    ],
-    'admin' => [
+    ),
+    'admin' => array(
         'title' => 'Administración',
         'subtitle' => 'Centro de Control TuBi',
         'field' => 'Usuario',
@@ -62,8 +62,8 @@ $roleConfig = [
         'icon' => 'lock',
         'color' => '#1e3a5f',
         'gradient' => 'linear-gradient(135deg, #1e3a5f 0%, #134e4a 100%)'
-    ]
-];
+    )
+);
 
 $config = isset($roleConfig[$role]) ? $roleConfig[$role] : $roleConfig['alumno'];
 $error = '';

@@ -12,13 +12,13 @@ $user = getCurrentUser();
 $pageTitle = 'Inventario';
 
 // Datos de ejemplo
-$inventario = [
-    ['codigo' => 'TUBI-2026-00150', 'estado' => 'lista', 'fecha_armado' => '2026-03-15', 'destino' => 'Escuela N° 123'],
-    ['codigo' => 'TUBI-2026-00151', 'estado' => 'lista', 'fecha_armado' => '2026-03-15', 'destino' => 'Escuela N° 123'],
-    ['codigo' => 'TUBI-2026-00152', 'estado' => 'en_armado', 'fecha_armado' => '-', 'destino' => 'Escuela N° 45'],
-    ['codigo' => 'TUBI-2026-00153', 'estado' => 'en_armado', 'fecha_armado' => '-', 'destino' => 'Escuela N° 45'],
-    ['codigo' => 'TUBI-2026-00154', 'estado' => 'componentes', 'fecha_armado' => '-', 'destino' => 'Sin asignar'],
-];
+$inventario = array(
+    array('codigo' => 'TUBI-2026-00150', 'estado' => 'lista', 'fecha_armado' => '2026-03-15', 'destino' => 'Escuela N° 123'),
+    array('codigo' => 'TUBI-2026-00151', 'estado' => 'lista', 'fecha_armado' => '2026-03-15', 'destino' => 'Escuela N° 123'),
+    array('codigo' => 'TUBI-2026-00152', 'estado' => 'en_armado', 'fecha_armado' => '-', 'destino' => 'Escuela N° 45'),
+    array('codigo' => 'TUBI-2026-00153', 'estado' => 'en_armado', 'fecha_armado' => '-', 'destino' => 'Escuela N° 45'),
+    array('codigo' => 'TUBI-2026-00154', 'estado' => 'componentes', 'fecha_armado' => '-', 'destino' => 'Sin asignar'),
+);
 
 include __DIR__ . '/../../includes/header.php';
 ?>

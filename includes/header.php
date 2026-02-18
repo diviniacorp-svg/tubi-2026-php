@@ -40,28 +40,28 @@ $flash = getFlash();
                     $role = $user['role'];
                     $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
-                    $navItems = [
-                        'alumno' => [
-                            ['url' => 'pages/alumno/dashboard.php', 'label' => '🚲 Mi TuBi', 'page' => 'dashboard'],
-                            ['url' => 'pages/alumno/aprender.php', 'label' => '🎮 Aprende Jugando', 'page' => 'aprender'],
-                        ],
-                        'tutor' => [
-                            ['url' => 'pages/tutor/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'],
-                        ],
-                        'escuela' => [
-                            ['url' => 'pages/escuela/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'],
-                            ['url' => 'pages/escuela/alumnos.php', 'label' => 'Alumnos', 'page' => 'alumnos'],
-                        ],
-                        'proveedor' => [
-                            ['url' => 'pages/proveedor/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'],
-                            ['url' => 'pages/proveedor/inventario.php', 'label' => 'Inventario', 'page' => 'inventario'],
-                        ],
-                        'admin' => [
-                            ['url' => 'pages/admin/dashboard.php', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                            ['url' => 'pages/admin/usuarios.php', 'label' => 'Usuarios', 'page' => 'usuarios'],
-                            ['url' => 'pages/admin/config.php', 'label' => 'Config', 'page' => 'config'],
-                        ],
-                    ];
+                    $navItems = array(
+                        'alumno' => array(
+                            array('url' => 'pages/alumno/dashboard.php', 'label' => '🚲 Mi TuBi', 'page' => 'dashboard'),
+                            array('url' => 'pages/alumno/aprender.php', 'label' => '🎮 Aprende Jugando', 'page' => 'aprender'),
+                        ),
+                        'tutor' => array(
+                            array('url' => 'pages/tutor/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'),
+                        ),
+                        'escuela' => array(
+                            array('url' => 'pages/escuela/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'),
+                            array('url' => 'pages/escuela/alumnos.php', 'label' => 'Alumnos', 'page' => 'alumnos'),
+                        ),
+                        'proveedor' => array(
+                            array('url' => 'pages/proveedor/dashboard.php', 'label' => 'Panel', 'page' => 'dashboard'),
+                            array('url' => 'pages/proveedor/inventario.php', 'label' => 'Inventario', 'page' => 'inventario'),
+                        ),
+                        'admin' => array(
+                            array('url' => 'pages/admin/dashboard.php', 'label' => 'Dashboard', 'page' => 'dashboard'),
+                            array('url' => 'pages/admin/usuarios.php', 'label' => 'Usuarios', 'page' => 'usuarios'),
+                            array('url' => 'pages/admin/config.php', 'label' => 'Config', 'page' => 'config'),
+                        ),
+                    );
 
                     if (isset($navItems[$role])):
                         foreach ($navItems[$role] as $item):

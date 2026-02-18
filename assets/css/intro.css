@@ -24,49 +24,122 @@ body.intro-page {
     overflow: hidden;
 }
 
-/* Fondo degradado azul a turquesa */
+/* Fondo degradado */
 .intro-gradient-bg {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: linear-gradient(135deg, #354393 0%, #3a5aab 30%, #4aacc4 70%, #4aacc4 100%);
     z-index: 1;
 }
 
-/* Logo TuBi como marca de agua grande centrada */
+/* Logo marca de agua - centrado y prominente */
 .intro-watermark {
     position: absolute;
     z-index: 2;
     width: 550px;
-    top: 45%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -55%);
-    transform: translate(-50%, -55%);
+    top: 42%; left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
     opacity: 0;
     -webkit-animation: watermarkFadeIn 1.5s ease-out 0.3s forwards;
     animation: watermarkFadeIn 1.5s ease-out 0.3s forwards;
 }
-
-.intro-watermark svg {
-    width: 100%;
-    height: auto;
-}
+.intro-watermark svg,
+.intro-watermark img { width: 100%; height: auto; }
 
 @-webkit-keyframes watermarkFadeIn {
-    0% { opacity: 0; -webkit-transform: translate(-50%, -55%) scale(0.8); transform: translate(-50%, -55%) scale(0.8); }
-    100% { opacity: 1; -webkit-transform: translate(-50%, -55%) scale(1); transform: translate(-50%, -55%) scale(1); }
+    0% { opacity: 0; -webkit-transform: translate(-50%, -50%) scale(0.8); }
+    100% { opacity: 1; -webkit-transform: translate(-50%, -50%) scale(1); }
 }
 @keyframes watermarkFadeIn {
-    0% { opacity: 0; transform: translate(-50%, -55%) scale(0.8); }
-    100% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Contenido central */
-.intro-content {
-    position: relative;
-    z-index: 3;
+/* ==========================================
+   PANEL DE ESTADÍSTICAS - LATERAL IZQUIERDO
+   ========================================== */
+.intro-stats-panel {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    z-index: 20;
+    width: 260px;
+    background: rgba(53, 67, 147, 0.65);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 1.25rem;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    -webkit-animation: panelSlideIn 0.6s ease-out 1s forwards;
+    animation: panelSlideIn 0.6s ease-out 1s forwards;
+}
+
+@-webkit-keyframes panelSlideIn {
+    0% { opacity: 0; -webkit-transform: translateY(-50%) translateX(-30px); }
+    100% { opacity: 1; -webkit-transform: translateY(-50%) translateX(0); }
+}
+@keyframes panelSlideIn {
+    0% { opacity: 0; transform: translateY(-50%) translateX(-30px); }
+    100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.intro-stats-header {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.intro-stats-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.intro-stats-dot {
+    width: 8px; height: 8px;
+    background: #2EC4C6;
+    border-radius: 50%;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-animation: livePulse 1.5s ease-in-out infinite;
+    animation: livePulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(46, 196, 198, 0.6);
+}
+
+@-webkit-keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+@keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.intro-stats-grid {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.intro-stat-item {
+    width: calc(50% - 0.25rem);
     display: -webkit-box;
     display: -webkit-flex;
     display: flex;
@@ -76,27 +149,106 @@ body.intro-page {
     -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-box-pack: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    padding: 1.5rem;
-    width: 100%;
+    text-align: center;
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.6rem 0.4rem;
 }
 
-/* Texto SAN LUIS 2026 */
+.intro-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    -webkit-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+}
+
+.intro-stat-value.updating {
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+    color: #2EC4C6;
+}
+
+.intro-stat-label {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
+}
+
+/* Barra de progreso en el panel */
+.intro-stats-progress {
+    padding-top: 0.5rem;
+}
+
+.intro-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.intro-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2EC4C6, #7dd3fc);
+    border-radius: 6px;
+    -webkit-transition: width 0.8s ease;
+    transition: width 0.8s ease;
+    min-width: 0;
+}
+
+.intro-progress-text {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    display: block;
+}
+
+/* ==========================================
+   CONTENIDO CENTRAL - vacío, solo watermark
+   ========================================== */
+.intro-content {
+    position: relative;
+    z-index: 3;
+}
+
+/* ==========================================
+   ZONA INFERIOR - iconos + barra de carga
+   ========================================== */
+.intro-bottom-zone {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 1.5rem 2rem 2rem;
+}
+
 .intro-location {
     font-size: 1.1rem;
     font-weight: 400;
     letter-spacing: 0.35em;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255,255,255,0.45);
     text-transform: uppercase;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
     opacity: 0;
     -webkit-animation: fadeInUp 0.8s ease-out 0.6s forwards;
     animation: fadeInUp 0.8s ease-out 0.6s forwards;
 }
 
-/* Iconos en fila */
 .intro-icons {
     display: -webkit-box;
     display: -webkit-flex;
@@ -108,317 +260,76 @@ body.intro-page {
     -webkit-justify-content: center;
     justify-content: center;
     gap: 2.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     opacity: 0;
     -webkit-animation: fadeInUp 0.8s ease-out 0.9s forwards;
     animation: fadeInUp 0.8s ease-out 0.9s forwards;
 }
 
 .intro-icon {
-    width: 38px;
-    height: 38px;
-    color: rgba(255, 255, 255, 0.7);
-    -webkit-transition: color 0.3s ease, -webkit-transform 0.3s ease;
-    transition: color 0.3s ease, transform 0.3s ease;
+    width: 38px; height: 38px;
+    color: rgba(255,255,255,0.7);
     -webkit-animation: floatIcon 4s ease-in-out infinite;
     animation: floatIcon 4s ease-in-out infinite;
 }
-
-.intro-icon:nth-child(1) { -webkit-animation-delay: 0s; animation-delay: 0s; }
-.intro-icon:nth-child(2) { -webkit-animation-delay: 0.3s; animation-delay: 0.3s; }
-.intro-icon:nth-child(3) { -webkit-animation-delay: 0.6s; animation-delay: 0.6s; }
-.intro-icon:nth-child(4) { -webkit-animation-delay: 0.9s; animation-delay: 0.9s; }
-.intro-icon:nth-child(5) { -webkit-animation-delay: 1.2s; animation-delay: 1.2s; }
+.intro-icon:nth-child(1) { animation-delay: 0s; }
+.intro-icon:nth-child(2) { animation-delay: 0.3s; }
+.intro-icon:nth-child(3) { animation-delay: 0.6s; }
+.intro-icon:nth-child(4) { animation-delay: 0.9s; }
+.intro-icon:nth-child(5) { animation-delay: 1.2s; }
 
 .intro-icon svg {
-    width: 100%;
-    height: 100%;
-    -webkit-filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
-}
-
-/* ==========================================
-   CUADRO DE ESTADÍSTICAS EN VIVO
-   Colores institucionales TuBi
-   Azul #354393 | Turquesa #2EC4C6
-   ========================================== */
-.intro-stats-card {
-    width: 92%;
-    max-width: 400px;
-    background: linear-gradient(145deg, rgba(53, 67, 147, 0.85), rgba(46, 196, 198, 0.35));
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 14px;
-    padding: 0.9rem 1.2rem;
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    -webkit-animation: scaleIn 0.5s ease-out 1.2s forwards;
-    animation: scaleIn 0.5s ease-out 1.2s forwards;
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.intro-stats-header {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    gap: 0.4rem;
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    color: rgba(255, 255, 255, 0.6);
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.intro-stats-dot {
-    width: 7px;
-    height: 7px;
-    background: #2EC4C6;
-    border-radius: 50%;
-    display: inline-block;
-    -webkit-animation: livePulse 1.5s ease-in-out infinite;
-    animation: livePulse 1.5s ease-in-out infinite;
-    box-shadow: 0 0 6px rgba(46, 196, 198, 0.6);
-}
-
-.intro-stats-grid {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-}
-
-.intro-stat-item {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-box-flex: 1;
-    -webkit-flex: 1;
-    flex: 1;
-    text-align: center;
-}
-
-.intro-stat-divider {
-    width: 1px;
-    height: 30px;
-    background: rgba(255, 255, 255, 0.12);
-    -webkit-flex-shrink: 0;
-    flex-shrink: 0;
-}
-
-.intro-stat-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.1;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    -webkit-transition: all 0.4s ease;
-    transition: all 0.4s ease;
-}
-
-.intro-stat-value.updating {
-    -webkit-transform: scale(1.2);
-    transform: scale(1.2);
-    color: #2EC4C6;
-}
-
-.intro-stat-label {
-    font-size: 0.6rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 0.15rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Barra de progreso dentro del cuadro */
-.intro-stats-progress {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 0.6rem;
-}
-
-.intro-progress-track {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.intro-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #2EC4C6, #7dd3fc);
-    border-radius: 10px;
-    -webkit-transition: width 0.8s ease;
-    transition: width 0.8s ease;
-    min-width: 0;
-    box-shadow: 0 0 8px rgba(46, 196, 198, 0.4);
-}
-
-.intro-progress-text {
-    display: block;
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.45);
-    text-align: center;
-    margin-top: 0.35rem;
-}
-
-/* Animación de entrada del cuadro */
-@-webkit-keyframes scaleIn {
-    0% { opacity: 0; -webkit-transform: scale(0.9) translateY(10px); transform: scale(0.9) translateY(10px); }
-    100% { opacity: 1; -webkit-transform: scale(1) translateY(0); transform: scale(1) translateY(0); }
-}
-@keyframes scaleIn {
-    0% { opacity: 0; transform: scale(0.9) translateY(10px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-@-webkit-keyframes livePulse {
-    0%, 100% { opacity: 1; -webkit-transform: scale(1); transform: scale(1); }
-    50% { opacity: 0.4; -webkit-transform: scale(0.8); transform: scale(0.8); }
-}
-@keyframes livePulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
+    width: 100%; height: 100%;
+    -webkit-filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
 }
 
 /* Barra de carga */
 .intro-loading-bar {
-    width: 260px;
-    max-width: 60vw;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    overflow: hidden;
+    width: 260px; max-width: 60vw; height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px; overflow: hidden;
     opacity: 0;
-    -webkit-animation: fadeInUp 0.6s ease-out 1.5s forwards;
-    animation: fadeInUp 0.6s ease-out 1.5s forwards;
+    -webkit-animation: fadeInUp 0.6s ease-out 1.2s forwards;
+    animation: fadeInUp 0.6s ease-out 1.2s forwards;
 }
 
 .intro-loading-fill {
     height: 100%;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255,255,255,0.8);
     border-radius: 10px;
-    -webkit-animation: loadingProgress 2.5s ease-in-out forwards;
-    animation: loadingProgress 2.5s ease-in-out forwards;
-    -webkit-animation-delay: 1.8s;
-    animation-delay: 1.8s;
     width: 0%;
+    -webkit-animation: loadingProgress 2.5s ease-in-out 1.4s forwards;
+    animation: loadingProgress 2.5s ease-in-out 1.4s forwards;
 }
 
-@-webkit-keyframes loadingProgress {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-@keyframes loadingProgress {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-
-/* Botón Ingresar al Sistema */
-.intro-enter-btn {
-    display: -webkit-inline-box;
-    display: -webkit-inline-flex;
-    display: inline-flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    padding: 0.75rem 1.75rem;
-    border-radius: 30px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    font-family: 'Ubuntu', sans-serif;
-    text-decoration: none;
-    cursor: pointer;
-    -webkit-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
-    opacity: 0;
-    -webkit-transform: translateY(10px);
-    transform: translateY(10px);
-    pointer-events: none;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-}
-
-.intro-enter-btn.visible {
-    opacity: 1;
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-.intro-enter-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-    -webkit-transform: translateY(-2px);
-    transform: translateY(-2px);
-}
-
-.intro-enter-btn svg {
-    -webkit-transition: -webkit-transform 0.3s;
-    transition: transform 0.3s;
-}
-
-.intro-enter-btn:hover svg {
-    -webkit-transform: translateX(3px);
-    transform: translateX(3px);
-}
+@-webkit-keyframes loadingProgress { 0% { width: 0%; } 100% { width: 100%; } }
+@keyframes loadingProgress { 0% { width: 0%; } 100% { width: 100%; } }
 
 /* Botón Saltar */
 .intro-skip {
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: rgba(255, 255, 255, 0.7);
-    padding: 0.5rem 1.2rem;
+    top: 0.6rem; right: 1rem;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    padding: 0.35rem 0.9rem;
     border-radius: 20px;
-    font-size: 0.85rem;
-    font-family: inherit;
-    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: inherit; cursor: pointer;
     -webkit-transition: all 0.3s;
     transition: all 0.3s;
     z-index: 100;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
 }
-
 .intro-skip:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.15);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Animaciones */
 @-webkit-keyframes fadeInUp {
-    0% { opacity: 0; -webkit-transform: translateY(15px); transform: translateY(15px); }
-    100% { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+    0% { opacity: 0; -webkit-transform: translateY(15px); }
+    100% { opacity: 1; -webkit-transform: translateY(0); }
 }
 @keyframes fadeInUp {
     0% { opacity: 0; transform: translateY(15px); }
@@ -426,20 +337,18 @@ body.intro-page {
 }
 
 @-webkit-keyframes floatIcon {
-    0%, 100% { -webkit-transform: translateY(0); transform: translateY(0); }
-    50% { -webkit-transform: translateY(-6px); transform: translateY(-6px); }
+    0%, 100% { -webkit-transform: translateY(0); }
+    50% { -webkit-transform: translateY(-6px); }
 }
 @keyframes floatIcon {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
 }
 
-/* Fade out para transición */
 .intro-container.fade-out {
     -webkit-animation: introFadeOut 0.5s ease forwards;
     animation: introFadeOut 0.5s ease forwards;
 }
-
 @-webkit-keyframes introFadeOut { to { opacity: 0; } }
 @keyframes introFadeOut { to { opacity: 0; } }
 
@@ -451,35 +360,77 @@ body.intro-page {
     .intro-icons { gap: 2rem; }
     .intro-icon { width: 32px; height: 32px; }
     .intro-location { font-size: 0.95rem; letter-spacing: 0.3em; }
-    .intro-stat-value { font-size: 1.4rem; }
-    .intro-stats-card { max-width: 360px; }
+
+    .intro-stats-panel {
+        width: 220px;
+        left: 1rem;
+        padding: 1rem;
+    }
+    .intro-stat-value { font-size: 1.3rem; }
 }
 
 @media (max-width: 480px) {
-    .intro-content { padding: 1.2rem 0.75rem; }
-    .intro-watermark { width: 280px; }
-    .intro-icons { gap: 1.5rem; margin-bottom: 1.5rem; }
+    .intro-watermark { width: 280px; top: 30%; }
+    .intro-icons { gap: 1.5rem; }
     .intro-icon { width: 26px; height: 26px; }
-    .intro-location { font-size: 0.8rem; letter-spacing: 0.25em; margin-bottom: 1.5rem; }
+    .intro-location { font-size: 0.8rem; letter-spacing: 0.25em; }
     .intro-loading-bar { width: 200px; }
-    .intro-skip { top: 1rem; right: 1rem; padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-    .intro-enter-btn { font-size: 0.85rem; padding: 0.65rem 1.5rem; }
 
-    .intro-stats-card {
-        width: 95%;
-        max-width: 100%;
-        padding: 0.75rem 0.9rem;
+    /* En mobile: panel va abajo, justo encima de los iconos */
+    .intro-stats-panel {
+        position: absolute;
+        left: 0.75rem;
+        right: 0.75rem;
+        top: auto;
+        bottom: 10rem;
+        width: auto;
+        -webkit-transform: none;
+        transform: none;
         border-radius: 12px;
-        margin-bottom: 1.25rem;
+        padding: 0.65rem 0.75rem;
+        -webkit-animation: fadeInUp 0.6s ease-out 1s forwards;
+        animation: fadeInUp 0.6s ease-out 1s forwards;
     }
-    .intro-stat-value { font-size: 1.3rem; }
-    .intro-stat-label { font-size: 0.55rem; }
-    .intro-stat-divider { height: 24px; }
-    .intro-stats-header { font-size: 0.55rem; letter-spacing: 0.15em; }
+
+    .intro-stats-grid {
+        gap: 0.4rem;
+    }
+
+    .intro-stat-item {
+        padding: 0.4rem 0.3rem;
+    }
+
+    .intro-stat-value { font-size: 1.1rem; }
+    .intro-stat-label { font-size: 0.5rem; }
+
+    .intro-stats-header {
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .intro-stats-title { font-size: 0.7rem; }
+
+    .intro-bottom-zone {
+        padding: 1rem 1.5rem 1.5rem;
+    }
+
+    .intro-skip {
+        top: 0.5rem; right: 0.75rem;
+        z-index: 25;
+    }
+}
+
+@-webkit-keyframes slideDown {
+    0% { opacity: 0; -webkit-transform: translateY(-100%); }
+    100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+@keyframes slideDown {
+    0% { opacity: 0; transform: translateY(-100%); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 360px) {
-    .intro-stat-value { font-size: 1.15rem; }
-    .intro-stats-card { padding: 0.65rem 0.7rem; }
-    .intro-stat-divider { display: none; }
+    .intro-stats-grid { gap: 0.3rem; }
+    .intro-stat-value { font-size: 0.95rem; }
+    .intro-stats-progress { display: none; }
 }

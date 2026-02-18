@@ -1,6 +1,6 @@
 /**
  * TUBI 2026 - Interfaz 0 (Intro)
- * Muestra estadísticas en vivo y botón para ingresar
+ * Muestra estadísticas en vivo y redirige automáticamente al login
  * Compatible ES5
  */
 
@@ -8,8 +8,8 @@
     'use strict';
 
     // Configuración
-    var LOADING_DONE_AT = 4500;       // ms cuando termina la barra de carga (1.8s delay + 2.5s anim)
-    var SHOW_BUTTON_DELAY = 4800;     // ms para mostrar botón "Ingresar"
+    var LOADING_DONE_AT = 4200;       // ms cuando termina la barra de carga (1.4s delay + 2.5s anim + margen)
+    var REDIRECT_DELAY = 4800;        // ms para redirigir automáticamente al login
     var STATS_REFRESH_INTERVAL = 15000; // Refrescar stats cada 15 seg
     var FADE_DURATION = 500;
     var REDIRECT_URL = window.introRedirectUrl || 'selector.php';
@@ -57,7 +57,7 @@
 
         // Texto de detalle
         var detalleEl = document.getElementById('statDetalle');
-        if (detalleEl) detalleEl.textContent = entregadas + '/' + total + ' bicicletas \u2014 ' + progreso + '%';
+        if (detalleEl) detalleEl.textContent = entregadas + ' / ' + total + ' bicicletas entregadas';
     }
 
     function animateValue(elementId, newValue) {
@@ -68,7 +68,6 @@
         var newStr = String(newValue);
 
         if (current !== newStr) {
-            // Efecto de destaque al cambiar
             el.className = 'intro-stat-value updating';
             el.textContent = newStr;
             setTimeout(function() {
@@ -81,7 +80,7 @@
     // Navegación
     // ========================================
 
-    function skipToSelector() {
+    function goToLogin() {
         if (refreshTimer) {
             clearInterval(refreshTimer);
             refreshTimer = null;
@@ -97,19 +96,6 @@
         }, FADE_DURATION);
     }
 
-    function showEnterButton() {
-        var btn = document.getElementById('introEnterBtn');
-        if (btn) {
-            btn.className = btn.className + ' visible';
-        }
-        // Ocultar barra de carga después de que aparezca el botón
-        var loadingBar = document.getElementById('introLoadingBar');
-        if (loadingBar) {
-            loadingBar.style.opacity = '0';
-            loadingBar.style.transition = 'opacity 0.3s';
-        }
-    }
-
     // ========================================
     // Inicialización
     // ========================================
@@ -120,19 +106,19 @@
         if (skipBtn) {
             skipBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                skipToSelector();
+                goToLogin();
             });
         }
 
         // Tecla Escape para saltar
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                skipToSelector();
+                goToLogin();
             }
         });
 
-        // Mostrar botón "Ingresar al Sistema" después de la carga
-        setTimeout(showEnterButton, SHOW_BUTTON_DELAY);
+        // Auto-redirect al login después de que termine la barra de carga
+        setTimeout(goToLogin, REDIRECT_DELAY);
 
         // Auto-refresh de estadísticas cada 15 segundos
         refreshTimer = setInterval(refreshStats, STATS_REFRESH_INTERVAL);

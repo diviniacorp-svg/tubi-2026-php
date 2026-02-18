@@ -12,13 +12,13 @@ $user = getCurrentUser();
 $pageTitle = 'Alumnos';
 
 // Datos de ejemplo
-$alumnos = [
-    ['dni' => '45123456', 'nombre' => 'Juan Pérez', 'curso' => '4° A', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00123'],
-    ['dni' => '45234567', 'nombre' => 'Ana García', 'curso' => '3° B', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00122'],
-    ['dni' => '45345678', 'nombre' => 'Carlos López', 'curso' => '5° A', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00121'],
-    ['dni' => '45456789', 'nombre' => 'María Rodríguez', 'curso' => '4° B', 'estado' => 'en_proceso', 'codigo' => '-'],
-    ['dni' => '45567890', 'nombre' => 'Pedro Sánchez', 'curso' => '3° A', 'estado' => 'pendiente', 'codigo' => '-'],
-];
+$alumnos = array(
+    array('dni' => '45123456', 'nombre' => 'Juan Pérez', 'curso' => '4° A', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00123'),
+    array('dni' => '45234567', 'nombre' => 'Ana García', 'curso' => '3° B', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00122'),
+    array('dni' => '45345678', 'nombre' => 'Carlos López', 'curso' => '5° A', 'estado' => 'activa', 'codigo' => 'TUBI-2026-00121'),
+    array('dni' => '45456789', 'nombre' => 'María Rodríguez', 'curso' => '4° B', 'estado' => 'en_proceso', 'codigo' => '-'),
+    array('dni' => '45567890', 'nombre' => 'Pedro Sánchez', 'curso' => '3° A', 'estado' => 'pendiente', 'codigo' => '-'),
+);
 
 include __DIR__ . '/../../includes/header.php';
 ?>
