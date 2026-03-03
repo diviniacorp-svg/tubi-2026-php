@@ -90,13 +90,12 @@ $progressPercent = ($totalModules > 0) ? ($completedModules / $totalModules) * 1
         body::before {
             content: '';
             position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 600px;
-            height: 600px;
-            transform: translate(-50%, -50%);
-            background: url('<?= BASE_URL ?>assets/img/intro-central.png') no-repeat center;
-            background-size: contain;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('<?= BASE_URL ?>assets/img/intro-central.png') no-repeat center center;
+            background-size: cover;
             opacity: 0.06;
             z-index: 0;
             pointer-events: none;
@@ -317,6 +316,7 @@ $progressPercent = ($totalModules > 0) ? ($completedModules / $totalModules) * 1
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
+            align-items: start;
         }
 
         .module-card {
@@ -494,7 +494,7 @@ $progressPercent = ($totalModules > 0) ? ($completedModules / $totalModules) * 1
     <!-- Nav Tabs -->
     <nav class="nav-tabs">
         <a href="<?= BASE_URL ?>pages/alumno/dashboard.php" class="nav-tab">Mi TuBi</a>
-        <a href="<?= BASE_URL ?>pages/alumno/aprender.php" class="nav-tab active">Aprendé</a>
+        <a href="<?= BASE_URL ?>pages/alumno/aprender.php" class="nav-tab active">Aprende Jugando</a>
         <a href="<?= BASE_URL ?>pages/alumno/logros.php" class="nav-tab">Logros</a>
     </nav>
 

@@ -87,8 +87,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('pages/' . $role . '/dashboard.php');
     }
 
-    // Buscar en base de datos
-    $dbUser = dbFetchOne('SELECT * FROM usuarios WHERE email = ? AND password = ?', array($identifier, $password));
+    // Limpiar identificador (quitar puntos y guiones de DNI/CUIT)
+    $identifierClean = preg_replace('/[.\-]/', '', $identifier);
+
+    // Buscar en base de datos segun el rol
+    if ($role === 'alumno' || $role === 'tutor') {
+        $dbUser = dbFetchOne(
+            'SELECT * FROM usuarios WHERE (dni = ? OR dni = ? OR email = ?) AND password = ? AND role = ?',
+            array($identifier, $identifierClean, $identifier, $password, $role)
+        );
+    } elseif ($role === 'proveedor') {
+        $dbUser = dbFetchOne(
+            'SELECT * FROM usuarios WHERE (cuit = ? OR cuit = ? OR email = ?) AND password = ? AND role = ?',
+            array($identifier, $identifierClean, $identifier, $password, $role)
+        );
+    } elseif ($role === 'escuela') {
+        $dbUser = dbFetchOne(
+            'SELECT * FROM usuarios WHERE (cue = ? OR email = ?) AND password = ? AND role = ?',
+            array($identifier, $identifier, $password, $role)
+        );
+    } else {
+        $dbUser = dbFetchOne(
+            'SELECT * FROM usuarios WHERE email = ? AND password = ?',
+            array($identifier, $password)
+        );
+    }
 
     if ($dbUser) {
         $_SESSION['user'] = array(

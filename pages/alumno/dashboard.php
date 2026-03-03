@@ -44,17 +44,22 @@ if (!empty($alumnoData['escuela_id'])) {
 }
 $escuelaNombre = $escuelaData ? $escuelaData['nombre'] : 'Escuela N 123';
 
-// Buscar bicicleta asignada
-$biciData = dbFetchOne('SELECT * FROM bicicletas WHERE alumno_id = ?', array($alumnoId));
+// Buscar bicicleta asignada (con datos del proveedor)
+$biciData = dbFetchOne(
+    'SELECT b.*, p.nombre AS proveedor_nombre, p.localidad AS proveedor_localidad ' .
+    'FROM bicicletas b LEFT JOIN proveedores p ON b.proveedor_id = p.id ' .
+    'WHERE b.alumno_id = ?',
+    array($alumnoId)
+);
 if (!$biciData) {
     $biciData = array(
         'codigo' => 'TUBI-SL-00123',
         'serie' => 'SN-2026-00123',
-        'rodado' => 26,
-        'color' => 'Azul TuBi',
         'estado' => 'entregada',
         'fecha_entrega' => '2026-02-01',
         'garantia_hasta' => '2028-02-01',
+        'proveedor_nombre' => 'Logistica San Luis S.A.',
+        'proveedor_localidad' => 'San Luis',
     );
 }
 
@@ -289,8 +294,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .qr-code-display { width: 100px; height: 100px; background: white; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; }
 
         /* Grid */
-        .top-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: start; }
+        .top-cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; align-items: start; }
         .top-cards-grid > .data-card { margin-bottom: 0; }
+        .data-card-divider { border: none; border-top: 1px solid #c8dfe9; margin: 0.75rem 0; }
 
         /* Gamification */
         .gamification-card { background: #eef6fa; border: 1px solid #c8dfe9; border-radius: 16px; overflow: hidden; }
@@ -414,8 +420,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .top-cards-grid { grid-template-columns: 1fr 1fr; }
-            .top-cards-grid > :nth-child(3) { grid-column: 1 / -1; }
+            .top-cards-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
             .student-header-top { flex-direction: column; gap: 0.4rem; text-align: center; }
@@ -483,7 +488,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <h2 class="section-title"><span class="section-icon">&#128203;</span> Mis Datos</h2>
                 <div class="top-cards-grid">
-                    <!-- Carnet -->
+                    <!-- Carnet unificado -->
                     <div class="data-card">
                         <div class="data-card-header estudiante">
                             <div class="data-card-icon estudiante">&#128100;</div>
@@ -496,22 +501,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="data-row"><span class="data-label">Escuela</span><span class="data-value"><?php echo e($escuelaNombre); ?></span></div>
                             <div class="data-row"><span class="data-label">Curso</span><span class="data-value"><?php echo e(isset($alumnoData['curso']) ? $alumnoData['curso'] : '5 B'); ?></span></div>
                             <div class="data-row"><span class="data-label">Inscripcion</span><span class="data-value"><?php echo date('d/m/Y', strtotime(isset($alumnoData['fecha_registro']) ? $alumnoData['fecha_registro'] : '2026-01-15')); ?></span></div>
-                        </div>
-                    </div>
-
-                    <!-- Bicicleta -->
-                    <div class="data-card">
-                        <div class="data-card-header bicicleta">
-                            <div class="data-card-icon bicicleta">&#128690;</div>
-                            <div class="data-card-title"><h3>Mi TuBi</h3></div>
-                            <span class="badge badge-success">ENTREGADA</span>
-                        </div>
-                        <div class="data-card-body">
-                            <div class="data-row"><span class="data-label">Codigo</span><span class="data-value" style="color: #354393; font-weight: 700;"><?php echo e($biciData['codigo']); ?></span></div>
-                            <div class="data-row"><span class="data-label">Serie</span><span class="data-value"><?php echo e(isset($biciData['serie']) ? $biciData['serie'] : 'SN-2026-00123'); ?></span></div>
-                            <div class="data-row"><span class="data-label">Rodado</span><span class="data-value">R<?php echo e($biciData['rodado']); ?></span></div>
-                            <div class="data-row"><span class="data-label">Color</span><span class="data-value"><?php echo e(isset($biciData['color']) ? $biciData['color'] : 'Azul TuBi'); ?></span></div>
-                            <div class="data-row"><span class="data-label">Entrega</span><span class="data-value"><?php echo date('d/m/Y', strtotime(isset($biciData['fecha_entrega']) ? $biciData['fecha_entrega'] : '2026-02-01')); ?></span></div>
+                            <hr class="data-card-divider">
+                            <div class="data-row"><span class="data-label">Codigo TuBi</span><span class="data-value" style="color: #354393; font-weight: 700;"><?php echo e($biciData['codigo']); ?></span></div>
+                            <div class="data-row"><span class="data-label">Proveedor</span><span class="data-value"><?php echo e(isset($biciData['proveedor_nombre']) ? $biciData['proveedor_nombre'] : ''); ?></span></div>
+                            <div class="data-row"><span class="data-label">Localidad</span><span class="data-value"><?php echo e(isset($biciData['proveedor_localidad']) ? $biciData['proveedor_localidad'] : 'San Luis'); ?></span></div>
                         </div>
                         <div class="data-card-qr">
                             <div class="qr-code-display">
@@ -674,8 +667,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="data-row"><span class="data-label">Codigo</span><span class="data-value" style="color:#354393;font-weight:700"><?php echo e($biciData['codigo']); ?></span></div>
                 <div class="data-row"><span class="data-label">Serie</span><span class="data-value"><?php echo e(isset($biciData['serie']) ? $biciData['serie'] : 'SN-2026-00123'); ?></span></div>
-                <div class="data-row"><span class="data-label">Rodado</span><span class="data-value">R<?php echo e($biciData['rodado']); ?></span></div>
-                <div class="data-row"><span class="data-label">Color</span><span class="data-value"><?php echo e(isset($biciData['color']) ? $biciData['color'] : 'Azul'); ?></span></div>
+                <div class="data-row"><span class="data-label">Proveedor</span><span class="data-value"><?php echo e(isset($biciData['proveedor_nombre']) ? $biciData['proveedor_nombre'] : ''); ?></span></div>
                 <div class="data-row"><span class="data-label">Entrega</span><span class="data-value"><?php echo date('d/m/Y', strtotime(isset($biciData['fecha_entrega']) ? $biciData['fecha_entrega'] : '2026-02-01')); ?></span></div>
                 <div class="data-row"><span class="data-label">Garantia</span><span class="data-value"><?php echo date('d/m/Y', strtotime(isset($biciData['garantia_hasta']) ? $biciData['garantia_hasta'] : '2028-02-01')); ?></span></div>
             </div>
